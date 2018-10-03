@@ -15,6 +15,7 @@ mysql_code="mysql-5.7.17"
 mysql_boost="boost_1_59_0"
 soft_dir=/tmp/install_mysql5_7
 url='http://xiangys-test.oss-cn-qingdao.aliyuncs.com/deploy/source'
+port=3306
 
 [ ! -d ${mysql_base} ] && mkdir ${mysql_base} -p
 [ ! -d ${mysql_data} ] && mkdir ${mysql_data} -p
@@ -99,7 +100,7 @@ mysql_make() {
 cat >>${my_cnf}<< EOF 
 [mysqld]
 user = mysql
-port = 3356
+port = ${port}
 #datadir=/data/mysql/data
 datadir = ${mysql_data}
 #basedir = /usr/local/mysql
@@ -181,7 +182,7 @@ firewalld_port() {
     echo "add firewalld port..."
     firewalld_state=`firewall-cmd --state`
     if [ "${firewalld_state}" = "running" ]; then
-        firewall-cmd --zone=public --add-port=3306/tcp --permanent
+        firewall-cmd --zone=public --add-port=$(port)/tcp --permanent
         firewall-cmd --reload
     fi
 }
