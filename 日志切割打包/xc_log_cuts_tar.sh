@@ -15,9 +15,9 @@ cut_log() {
     log_path=$1
     pid_path=$2
     file_type="*.log"
-    for file in `find ${log_path} -maxdepth 1 -name ${file_type} |egrep -v "[0-9]{4}-[0-9]{2}-[0-9]{2}"`
+    for file in `find ${log_path} -maxdepth 1 -name ${file_type} |egrep -v "[0-9]{4}-[0-9]{2}-[0-9]{2}||gz$|_[0-9]{4}[0-9]{2}[0-9]{2}[0-9]{2}"`
     do
-        mv ${file} ${file%%.log}_`date -d "yesterday" +"%Y%m%d%H%M%S"`.log
+        mv ${file} "${file%%.log}_`date -d "yesterday" +"%Y%m%d%H%M%S"`.log"
     done 
 
     if [ -n "${pid_path}" ]; then
@@ -29,8 +29,8 @@ cut_log() {
 #可以作为切割系统日志,默认系统日志已经自带该功能
 cut_rsyslog() {
     log_path=$1
-    if [ -d ${log_path} ]; then
-        for file in `find ${log_path} -type f|egrep "messages|secure|maillog|cron"`
+    if [ -d "${log_path}" ]; then
+        for file in "`find ${log_path} -type f|egrep "messages|secure|maillog|cron"`"
         do
             if [ `echo "${file}" |grep "-"|wc -l` -ge 1 ]; then
                 #删除大于15天的系统日志
@@ -50,15 +50,22 @@ tar_log() {
     curr_log_file=`ls "${log_path}"|egrep -v "gz$"`
     if [ "${curr_log_file}" != '' ]; then
         new_arr=("${curr_log_file}")
+        echo ${new_arr}
         cd "${log_path}"
         for file in ${new_arr[@]}
-        do
-            time_stamp=`stat -c %Y  "${file}"`
-            if [ "`date -d @"${time_stamp}"  "+%Y-%m-%d"`" == "${currTime}" ]; then
+        do  
+            echo ${file}"############"
+            time_stamp=`stat -c %Y  ${file}`
+            [ $? -eq 0 ] && time_stamp=`date -d @${time_stamp} "+%Y-%m-%d"`
+            #echo `date`
+            #time_stamp=`date -d @${time_stamp} "+%Y-%m-%d"`
+            #if [ `date -d "@${time_stamp}" "+%Y-%m-%d"` == "${currTime}" ]; then
+            if [ "${time_stamp}" == "${currTime}" ]; then
                 echo "${file}"
                 continue
             fi
-            tar -czf ${file}.tar.gz ${file} --remove-file
+            echo "${file}"
+            #tar --force-local  -czf ${file}.tar.gz ${file} --remove-file
         done
         cd ${cmd}
     fi
