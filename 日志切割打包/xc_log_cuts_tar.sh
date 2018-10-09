@@ -54,7 +54,7 @@ tar_log() {
         cd "${log_path}"
         for file in ${new_arr[@]}
         do  
-            echo ${file}"############"
+            #echo ${file}"############"
             time_stamp=`stat -c %Y  ${file}`
             [ $? -eq 0 ] && time_stamp=`date -d @${time_stamp} "+%Y-%m-%d"`
             #echo `date`
@@ -64,8 +64,8 @@ tar_log() {
                 echo "${file}"
                 continue
             fi
-            echo "${file}"
-            #tar --force-local  -czf ${file}.tar.gz ${file} --remove-file
+            #echo "${file}"
+            tar --force-local  -czf ${file}.tar.gz ${file} --remove-file
         done
         cd ${cmd}
     fi
