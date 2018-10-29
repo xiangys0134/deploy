@@ -1,7 +1,7 @@
 #!/bin/bash
 #CentOS7 系统初始化
 #yousong.xiang
-#v1.0.1
+#v1.0.2
 #需求：
 #1.检测是否为root
 #2.检测是否联网
@@ -21,7 +21,7 @@
 [ -f /etc/init.d/functions ] && . /etc/init.d/functions
 
 dictory='/tmp'
-
+cmd=`pwd`
 #检查1 2两项
 env_check() {
     uid=$(id -u)
@@ -44,7 +44,7 @@ mirror() {
     cd /etc/yum.repos.d
     curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-${release_id}.repo
     yum makecache
-    cd ${dictory}
+    #cd ${dictory}
 }
 
 localtime() {
@@ -64,10 +64,21 @@ localtime() {
 }
 
 install_base_soft() {
-    bsoft_list="man yum-plugin-fastestmirror vim-enhanced ntp wget bash-completion elinks lrzsz unix2dos dos2unix git unzip python python-devel python-pip telnet"
-    for i in ${bsoft_list}; do
-        yum install -y ${i}
-    done
+    #bsoft_list="man yum-plugin-fastestmirror vim-enhanced ntp wget bash-completion elinks lrzsz unix2dos dos2unix git unzip python python-devel python-pip telnet"
+    #for i in ${bsoft_list}; do
+    #    yum install -y ${i}
+    #done
+    cd ${cmd}
+    wget https://bootstrap.pypa.io/get-pip.py
+    if [ $? -eq 0 ]; then
+        python ${cmd}/get-pip.py
+    fi
+    yum install -y man yum-plugin-fastestmirror vim-enhanced ntp wget bash-completion elinks lrzsz unix2dos dos2unix git unzip python python-devel python-pip telnet
+
+    pip install setuptools
+    if [ $? -eq 0 ]; then
+        echo -e "\033[32mInstall setuptools seccess\033[0m"
+    fi
 }
 
 set_su_admin() {
@@ -136,12 +147,13 @@ set_firewalld() {
 
 #关闭
 set_selinux() {
-    sed -i '/^SELINUX=enforcing$/s#enforcing#disabled#g' /etc/sysconfig/selinux
+    #sed -i '/^SELINUX=enforcing$/s#enforcing#disabled#g' /etc/sysconfig/selinux
+    sed -i '/^SELINUX=$/c\SELINUX=disabled' /etc/sysconfig/selinux
 }
 
 sysctl_limit() {
 
-  sysctl="###ops_diy_flag_sysctl
+cat >/${cmd}/sysctl.txt <<EOF
 net.ipv4.ip_forward = 0
 net.ipv4.conf.default.rp_filter = 1
 net.ipv4.conf.default.accept_source_route = 0
@@ -150,10 +162,6 @@ kernel.core_uses_pid = 1
 net.ipv4.tcp_syncookies = 1
 kernel.msgmnb = 65536
 kernel.msgmax = 65536
-#kernel.shmmax = ${ikernel_shmmax}
-#kernel.shmall = 134217728
-#net.ipv4.ip_local_port_range = 10240 63535
-#net.ipv4.ip_local_reserved_ports = 10241, 10242-12000
 net.ipv4.ip_local_port_range = 30000 63535
 net.ipv4.tcp_max_tw_buckets = 9000
 net.ipv4.tcp_keepalive_time = 180
@@ -166,7 +174,6 @@ net.ipv4.tcp_rmem = 4096 87380 16777216
 net.ipv4.tcp_wmem = 4096 65536 16777216
 net.nf_conntrack_max = 524288
 net.ipv4.tcp_fin_timeout = 30
-#net.ipv4.tcp_tw_reuse = 1
 net.ipv4.tcp_tw_recycle = 0
 net.core.netdev_max_backlog = 30000
 net.core.somaxconn = 65535
@@ -177,8 +184,29 @@ net.ipv4.tcp_syn_retries = 2
 vm.swappiness = 5
 vm.overcommit_memory = 1
 fs.file-max = 4096000
-kernel.ctrl-alt-del = 1"
-  echo "$sysctl" >> /etc/sysctl.conf && echo "$sysctl"
+kernel.ctrl-alt-del = 1
+EOF
+
+while read line
+do
+    echo "Modify ${line}..."
+    line_less=`echo ${line}|awk '{print $1}'`
+    if [ `grep "^${line_less}" /etc/sysctl.conf | wc -l` -ge 1 ]; then
+        echo -e "There ${line} Already exist"
+        continue
+    else
+        echo ${line} >> /etc/sysctl.conf
+        if [ $? -eq 0 ]; then
+            echo -e "\033[32mConfiguration ${line} seccess\033[0m"
+        else
+            echo -e "\033[31mConfiguration ${line} failure\033[0m"
+        fi
+    fi
+
+
+done < /${cmd}/sysctl.txt
+
+  #echo "$sysctl" >> /etc/sysctl.conf && echo "$sysctl"
 }
 
 set_sysctl() {
