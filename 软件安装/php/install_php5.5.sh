@@ -1,7 +1,10 @@
 #!/bin/bash
 #yousong.xiang 2018.10.11
+#v1.0.2
 #
+
 [ -f /etc/profile ] && . /etc/profile
+
 cmd=`pwd`
 
 check_rpm() {
@@ -20,13 +23,15 @@ epel_install() {
     fi 
   
     sys_ver=`lsb_release -r |awk -F' ' '{print $2}'|awk -F'.' '{ print $1 }'`
+    
+    source /etc/profile
     #判断是否安装remi-release,如果没有安装则安装
     if [ `check_rpm remi-release` == 0 ]; then
         rpm -ivh http://rpms.famillecollet.com/enterprise/remi-release-${sys_ver}.rpm  &>/dev/null
         if [ $? -eq 0 ]; then
-            echo "\033[32;1mremi-release install seccuess\033[0m"
+            echo -e "\033[32;1mremi-release install seccuess\033[0m"
         else
-            echo "\033[31;1mremi-release install fail\033[0m"
+            echo -e "\033[31;1mremi-release install fail\033[0m"
         fi
     fi   
 
@@ -38,11 +43,14 @@ php_fpm_conf() {
     php_fpm_cf=$3
     username=nginx
   
+   #[ -f /var/log/php_install.lock ] && echo -e '\033[31;1mPHP Already installed\033[0m';return 5
+
     id nginx &>/dev/null 
     if [ $? -ne 0 ]; then
         groupadd nginx
         useradd -M -g nginx -s /sbin/nologin  nginx
     fi
+    
 
     if [ ! -f ${php_fpm_cf} ]; then  
         echo "******************************************************************"
@@ -102,7 +110,7 @@ EOF
     fi
 
     if [ $? -eq 0 ]; then
-        echo "\033[32;1m生成php-fpm配置文件成功\033[0m"
+        echo -e "\033[32;1m生成$num:php-fpm配置文件成功\033[0m"
     fi
 
 }
@@ -111,6 +119,11 @@ install_php() {
     #以下两个变量可根据yum安装不同版本和socket进行调整
     #number=2
     #php_version=5.5
+
+    [ -f /var/log/php_install.lock ] && {
+                                            echo -e '\033[31;1mPHP Already installed\033[0m'
+                                            return 5
+                                        }
     #安装epel源
     epel_install
     php55w_repo=/etc/yum.repos.d/webtatic.repo
@@ -221,11 +234,60 @@ EOF
         let i++
     done 
 
+   cd ${cmd}
+   #安装安装ZendGuardLoader解密扩展
+   wget http://downloads.zend.com/guard/7.0.0/zend-loader-php5.5-linux-x86_64_update1.tar.gz
+   tar -zxf zend-loader-php5.5-linux-x86_64_update1.tar.gz
+   if [ ! -f /lib64/php/modules/ZendGuardLoader.so ]; then
+       cp ${cmd}/zend-loader-php5.5-linux-x86_64/ZendGuardLoader.so /lib64/php/modules/
+       chmod +x /lib64/php/modules/ZendGuardLoader.so
+   fi
+
+    #生成ZendGuard配置文件
+    if [ ! -f /etc/php.d/20-zendguardloader.ini ]; then
+        cat >>/etc/php.d/20-zendguardloader.ini<< EOF
+zend_extension=ZendGuardLoader.so
+zend_loader.enable = 1
+zend_loader.disable_licensing = 0
+zend_loader.obfuscation_level_support = 3            
+EOF
+    fi
+
+
+    #安装php-ssh2扩展
+    #if [ ! -f /usr/lib64/php/modules/ssh2.so ]; then
+    #    yum install -y gcc-c++ make >/dev/null >&1
+    #    echo -e "\n"|/bin/pecl install ssh2 >/dev/null >&1
+#cat >>/etc/php.d/20-ssh2.ini<< EOF
+#extension=ssh2.so   
+#EOF
+#    fi
+
+   touch /var/log/php_install.lock
+
 }
+
+
+function python36() {
+    cd ${cmd}
+    if [ `check_rpm python36` == 0 ]; then
+        yum install -y python36 python36-devel python36-setuptools python36-six.noarch
+        wget -P /tmp/ https://bootstrap.pypa.io/get-pip.py
+        /bin/python36 /tmp/get-pip.py
+        ln -s /bin/python36 /bin/python3
+        /usr/local/bin/pip3 install pandas
+        /usr/local/bin/pip3 install sxl
+    else
+            echo -e  "supervis 已安装,无需安装."
+    fi
+}
+
+
 
 case $1 in
   php)
     install_php
+    python36
     ;;
   *)
     echo $"Usage: $0 {web|php|mysql}"
