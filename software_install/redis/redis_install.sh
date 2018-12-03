@@ -4,15 +4,21 @@
 #Date:  2018.11.26
 #Version: v1.0.1
 
+datetime=`date '+%H%M%S'`
+log=upgrade${datetime}.log
+
+if [ ! -f ${log} ]; then
+    touch ${log}
+fi
+
 [ -f /etc/profile ] && . /etc/profile
 [ $# -ne 1 ] && {
-                    echo -e "\033[31m传递参数有误\033[0m"
+                    echo -e "\033[31m传递参数有误\033[0m" |tee -a ${log}
                     exit 9
                 }
 
 cmd=`pwd`
-log="./upgrade.log"
-exec 2>>$log
+
 
 function check_rpm() {
     rpm_name=$1
@@ -35,16 +41,16 @@ function epel_install() {
 
     #重新加载环境变量 
     sys_ver=`lsb_release -r |awk -F' ' '{print $2}'|awk -F'.' '{ print $1 }'`
-    echo ${sys_ver}    
+    #echo ${sys_ver}    
 
     #判断是否安装remi-release,如果没有安装则安装
     if [ `check_rpm remi-release` == '0' ]; then
         rpm -ivh http://rpms.famillecollet.com/enterprise/remi-release-${sys_ver}.rpm  &>/dev/null
         if [ $? -eq 0 ]; then
-            echo -e "\033[32;1mepel-release install seccuess\033[0m"
+            echo -e "\033[32;1mepel-release install seccuess\033[0m" |tee -a ${log}
             yum clean all            
         else
-            echo -e "\033[31;1mepel-release install fail\033[0m"
+            echo -e "\033[31;1mepel-release install fail\033[0m" |tee -a ${log}
         fi
     fi   
 
@@ -317,9 +323,9 @@ function redis_install() {
         epel_install
         yum --enablerepo=remi install -y redis >/dev/null >&1
         if [ $? -eq 0 ]; then
-            echo -e "\033[32;1mredis install seccuess\033[0m"
+            echo -e "\033[32;1mredis install seccuess\033[0m" |tee -a ${log}
         else
-            echo -e "\033[31;1mredis install fail\033[0m"
+            echo -e "\033[31;1mredis install fail\033[0m" |tee -a ${log}
         fi   
     fi
 
