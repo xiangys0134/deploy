@@ -12,8 +12,12 @@
                 }
 
 cmd=`pwd`
-log="./upgrade.log"
-exec 2>>$log
+datetime=`date '+%H%M%S'`
+log=upgrade${datetime}.log
+
+if [ ! -f ${log} ]; then
+    touch ${log}
+fi
 
 function check_rpm(){
     rpm_name=$1
@@ -36,21 +40,26 @@ function epel_install(){
 
     #重新加载环境变量 
     sys_ver=`lsb_release -r |awk -F' ' '{print $2}'|awk -F'.' '{ print $1 }'`
-    echo ${sys_ver}    
+    #echo ${sys_ver}    
 
     #判断是否安装remi-release,如果没有安装则安装
     if [ `check_rpm remi-release` == '0' ]; then
         rpm -ivh http://rpms.famillecollet.com/enterprise/remi-release-${sys_ver}.rpm  &>/dev/null
         if [ $? -eq 0 ]; then
-            echo -e "\033[32;1mepel-release install seccuess\033[0m"
+            echo -e "\033[32;1mepel-release install seccuess\033[0m" |tee -a ${log}
             yum clean all            
         else
-            echo -e "\033[31;1mepel-release install fail\033[0m"
+            echo -e "\033[31;1mepel-release install fail\033[0m" |tee -a ${log}
         fi
     fi   
 
     if [ `check_rpm wget` == '0' ]; then
         yum install -y wget
+        if [ `check_rpm wget` != '0' ]; then
+            echo -e "\033[32;1mwget install seccuess\033[0m" |tee -a ${log}
+        else
+            echo -e "\033[31;1mwget install fail\033[0m" |tee -a ${log}
+        fi
     fi
 
 }
@@ -63,7 +72,7 @@ function mysql56_install() {
 
 
     if [ -f /var/log/mysql_install.lock ]; then
-        echo -e "\033[31;1mMysql installed Already \033[0m"
+        echo -e "\033[31;1mMysql installed Already \033[0m" |tee -a ${log}
         return 0
     fi    
 
@@ -91,9 +100,9 @@ EOF
   fi
 
   if [ `check_rpm mysql-server` != '0' ]; then
-      echo -e "\033[32;1mmysql install seccuess\033[0m"
+      echo -e "\033[32;1mmysql install seccuess\033[0m" |tee -a ${log}
   else:
-      echo -e "\033[31;1mmysql install fail\033[0m"
+      echo -e "\033[31;1mmysql install fail\033[0m" |tee -a ${log}
   fi
 
   #创建mysql数据库目录
@@ -103,29 +112,22 @@ EOF
       mkdir -p ${mysql_data}/tmp
       chown -R mysql.mysql ${mysql_data}
   else
-      echo "mysql data 目录存在，无需创建."
+      echo "mysql data 目录存在，无需创建." |tee -a ${log}
       #chown -R mysql.mysql ${mysql_data}
   fi
 
 
-  mem_total=`cat /proc/meminfo |grep "MemTotal"|awk '{print $2}'`
-  mem_total=`echo "scale=1;${mem_total}/1024/1024"|bc`
+  mem_total=`free -m|grep "^Mem"|awk '{print $2}'`
 
 
-  if [ `echo ${mem_total}|awk -F'.' '{print $2}'` -qe 5 ]; then
-      ram=`echo ${mem_total}|awk -F'.' '{print $1}'`
-      ram=${ram:-0}
-      let mem_total=${ram} + 1
-  else:
-      mem_total=`echo ${mem_total}|awk -F'.' '{print $1}'`
-  fi
-
-  let buffer_innodb=mem_total / 2
-  if [ -n ${buffer_innodb} ]; then
-      buffer_innodb=${buffer_innodb}G
+  if [ -n ${mem_total} ]; then
+      let buffer_innodb=${mem_total}/2
   else
-      buffer_innodb=128M
+      buffer_innodb=256
   fi
+
+  buffer_innodb=${buffer_innodb}M
+  
   
   if [ -f ${mysql_conf} ]; then
       mv /etc/my.cnf /etc/my.cnfbak
@@ -246,12 +248,12 @@ EOF
       echo ${mysql_conf}
       /usr/bin/mysql_install_db --defaults-extra-file=${mysql_conf} --user=mysql --force
       if [ $? -eq 0 ]; then
-          echo  "mysql数据库初始化                            "
+          echo  "mysql数据库初始化成功" |tee -a ${log}
       else
-          echo 'mysql数据库初始化 fail'
+          echo 'mysql数据库初始化 fail' |tee -a ${log}
       fi
   else
-      echo "mysql数据库已初始化，无需再次初始化."
+      echo "mysql数据库已初始化，无需再次初始化." |tee -a ${log}
   fi
 
   if [ -f /usr/my.cnf ]; then
@@ -268,6 +270,11 @@ EOF
   /bin/systemctl start mysqld.service
   firewall-cmd --zone=public --add-service=mysql --permanent
   firewall-cmd --reload
+
+  if [ `check_rpm mysql-community-server` != '0' ]; then
+      echo "mysql-community-server install seccuess" |tee -a ${log}
+      touch /var/log/mysql_install.lock
+  fi
 
 }
 

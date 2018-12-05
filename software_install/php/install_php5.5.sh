@@ -6,6 +6,12 @@
 [ -f /etc/profile ] && . /etc/profile
 
 cmd=`pwd`
+datetime=`date '+%H%M%S'`
+log=upgrade${datetime}.log
+
+if [ ! -f ${log} ]; then
+    touch ${log}
+fi
 
 check_rpm() {
     rpm_name=$1
@@ -24,14 +30,14 @@ epel_install() {
   
     sys_ver=`lsb_release -r |awk -F' ' '{print $2}'|awk -F'.' '{ print $1 }'`
     
-    source /etc/profile
+    #source /etc/profile
     #判断是否安装remi-release,如果没有安装则安装
     if [ `check_rpm remi-release` == 0 ]; then
         rpm -ivh http://rpms.famillecollet.com/enterprise/remi-release-${sys_ver}.rpm  &>/dev/null
         if [ $? -eq 0 ]; then
-            echo -e "\033[32;1mremi-release install seccuess\033[0m"
+            echo -e "\033[32;1mremi-release install seccuess\033[0m" |tee -a ${log}
         else
-            echo -e "\033[31;1mremi-release install fail\033[0m"
+            echo -e "\033[31;1mremi-release install fail\033[0m" |tee -a ${log}
         fi
     fi   
 
@@ -110,7 +116,7 @@ EOF
     fi
 
     if [ $? -eq 0 ]; then
-        echo -e "\033[32;1m生成$num:php-fpm配置文件成功\033[0m"
+        echo -e "\033[32;1m生成$num:php-fpm配置文件成功\033[0m" |tee -a ${log}
     fi
 
 }
@@ -121,7 +127,7 @@ install_php() {
     #php_version=5.5
 
     [ -f /var/log/php_install.lock ] && {
-                                            echo -e '\033[31;1mPHP Already installed\033[0m'
+                                            echo -e '\033[31;1mPHP Already installed\033[0m' |tee -a ${log}
                                             return 5
                                         }
     #安装epel源
@@ -210,7 +216,7 @@ EOF
         yum --enablerepo=webtatic install -y libssh2-devel php55w php55w-devel php55w-opcache php55w-mbstring php55w-mcrypt php55w-mysqlnd php55w-fpm php55w-xml php55w-gd php55w-xmlrpc php55w-pecl-redis php55w-pecl-apcu php55w-bcmath php55w-pecl-igbinary php55w-pecl-memcache php55w-gearman php55w-memcached php55w-msgpack php55w-posix php55w-shmop php55w-soap php55w-sysvmsg php55w-sysvsem php55w-sysvshm php55w-zip php55w-pear php55w-pecl-xdebug php55w-pecl-amqp php55w-pecl-swoole php55w-pecl-mongodb openssl openssl-devel mysql-community-client python python-devel python-pip
     fi 
     if [ $? -ne 0 ]; then
-        echo "\033[31;1mphp install false\033[0m"
+        echo "\033[31;1mphp install false\033[0m" |tee -a ${log}
         exit 6
     fi   
 
@@ -278,7 +284,7 @@ function python36() {
         /usr/local/bin/pip3 install pandas
         /usr/local/bin/pip3 install sxl
     else
-            echo -e  "supervis 已安装,无需安装."
+            echo -e  "supervisor 已安装,无需安装." |tee -a ${log}
     fi
 }
 
