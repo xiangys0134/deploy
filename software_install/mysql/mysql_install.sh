@@ -121,7 +121,7 @@ EOF
 
 
   if [ -n ${mem_total} ]; then
-      let buffer_innodb=${mem_total}/2
+      let buffer_innodb=${mem_total}/4
   else
       buffer_innodb=256
   fi
