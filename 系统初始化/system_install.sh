@@ -38,6 +38,13 @@ env_check() {
 }
 
 
+function rpm_check() {
+    rpm_packer=$1
+    result=`rpm -qa|grep ${rpm_packer}|wc -l`
+    echo ${result}
+
+}
+
 mirror() {
     release_id=$(rpm -q centos-release|cut -d- -f3)
     mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
@@ -68,14 +75,25 @@ install_base_soft() {
     #for i in ${bsoft_list}; do
     #    yum install -y ${i}
     #done
+    if [ `rpm_check epel-release` == '0' ]; then
+        yum install -y epel-release
+        yum clean all
+    fi
     cd ${cmd}
     wget https://bootstrap.pypa.io/get-pip.py
     if [ $? -eq 0 ]; then
         python ${cmd}/get-pip.py
     fi
-    yum install -y man yum-plugin-fastestmirror vim-enhanced ntp wget bash-completion elinks lrzsz unix2dos dos2unix git unzip python python-devel python-pip telnet
-
-    pip install setuptools
+    yum install -y python36 python36-devel python36-setuptools python36-six.noarch net-tools man yum-plugin-fastestmirror vim-enhanced ntp wget bash-completion elinks lrzsz unix2dos dos2unix git unzip python python-devel python-pip telnet
+    if [ -f get-pip.py ]; then
+        rm -rf get-pip.py
+    fi
+    wget -P /tmp/ https://bootstrap.pypa.io/get-pip.py
+    /bin/python36 /tmp/get-pip.py
+    ln -s /bin/python36 /bin/python3
+    /usr/local/bin/pip install pandas
+    /usr/local/bin/pip install sxl
+    /usr/local/bin/pip install setuptools
     if [ $? -eq 0 ]; then
         echo -e "\033[32mInstall setuptools seccess\033[0m"
     fi
