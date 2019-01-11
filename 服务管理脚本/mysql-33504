@@ -1,0 +1,119 @@
+#!/bin/bash
+# chkconfig: 2345 64 36
+#
+
+[ -f /etc/profile ] && . /etc/profile
+[ -f /etc/init.d/functions ] && . /etc/init.d/functions
+
+basename=`basename $0` 
+port=33504
+cnf=/usr/local/mysql/my.cnf
+user=root
+passwd=qmkoVSElksds0ew98
+socket=/usr/local/mysql/mysql.sock
+lock=/var/log/mysql_lock-33504.start
+mysqld_safe=/usr/local/mysql/bin/mysqld_safe
+
+if [ $# -ne 1 ]; then
+    echo "Usage: $basename  {start|stop|restart|status}  [ MySQL server options ]"
+    exit 1
+fi
+
+function mysql_start(){
+
+    if [ -f ${lock} ]; then
+         action "MySQL running" /bin/true
+         exit 2
+    fi
+
+    ${mysqld_safe} --defaults-file=${cnf} 2>&1 > /dev/null &
+    REVELT=$?
+
+    if [ $REVELT -eq 0 ]; then
+        sleep 2
+        mysql_ppid=`ss -tunlp |grep ${port}|awk -F"," '{print $(NF-1)}'`
+        #echo ${mysql_ppid}
+        mysql_pid=`ps -ef|grep ${mysql_ppid}|egrep -v "grep" |awk '{print $3}'`
+
+        if [ -z ${mysql_ppid} -o -z ${mysql_pid} ]; then
+            echo "MySQL pid not exist"
+            exit 4
+        else
+            action "MySQL start ${mysql_pid}" /bin/true
+            echo "${mysql_pid}" > ${lock}
+        fi
+    fi
+
+}
+
+function mysql_stop(){
+
+    if [ ! -f ${lock} ]; then
+        action "MySQL running" /bin/false
+        exit 5
+    fi
+
+    #mysql_ppid=`ss -tunlp|grep ${port}|awk -F',' '{print $(NF-1)}'`
+    #mysql_pid=`ps -ef|grep ${mysql_ppid}|egrep -v "grep" |awk '{print $3}'`
+    #pid=`ps -ef|grep ${mysql_pid}|awk '$2==${mysql_pid}{print $3}'`
+
+    pid=`cat ${lock}`
+    if [ -n "${pid}" ]; then
+        /usr/bin/expect <<-EOF
+set time 30
+spawn /usr/local/mysql/bin/mysqladmin -u ${user} -p  -S ${socket} shutdown
+expect "*password:"
+send "${passwd}\r"
+expect eof
+EOF
+        REVELT=$?
+        sleep 2
+        if [ $REVELT -eq 0 ]; then
+            action "MySQL stopping ${pid}" /bin/true
+            rm -rf ${lock}
+        else
+            action "MySQL stopping ${pid}" /bin/false
+        fi
+    fi
+
+}
+
+function mysql_restart(){
+    mysql_stop
+    sleep 2
+    mysql_start   
+
+}
+
+
+function mysql_status(){
+    if [ ! -f ${lock} ]; then
+        action "MySQL running" /bin/false
+        exit 5
+    fi
+
+    pid=`cat ${lock}`
+    if [ -n "${pid}" ]; then
+        action "MySQL running ${pid}" /bin/true
+    fi
+
+}
+
+
+case $1 in
+"start")
+    mysql_start
+    ;;
+"stop")
+    mysql_stop
+    ;;
+"status")
+    mysql_status
+    ;;
+"restart")
+    mysql_restart
+    ;;
+*)
+    echo "Usage: $basename  {start|stop|restart|status}  [ MySQL server options ]"
+    ;;
+esac
