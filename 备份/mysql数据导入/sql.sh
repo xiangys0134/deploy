@@ -4,10 +4,10 @@
 dir_mysql=/tmp/sql
 base_dir=`dirname $0`
 user="root"
-pass="mysql.admin.pass"
+pass="数据库root密码"
 base_dir=`dirname $0`
 
-if [ $# -le 0 ]; then
+if [ $# -ne 1 ]; then
      echo "USAGE:$0 '$1'"
      exit 3
 fi
