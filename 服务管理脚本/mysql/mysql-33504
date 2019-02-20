@@ -30,7 +30,7 @@ function mysql_start(){
     REVELT=$?
 
     if [ $REVELT -eq 0 ]; then
-        sleep 2
+        sleep 5
         mysql_ppid=`ss -tunlp |grep ${port}|awk -F"," '{print $(NF-1)}'`
         #echo ${mysql_ppid}
         mysql_pid=`ps -ef|grep ${mysql_ppid}|egrep -v "grep" |awk '{print $3}'`
