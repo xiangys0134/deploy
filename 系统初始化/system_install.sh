@@ -148,7 +148,7 @@ set_firewalld() {
 #关闭
 set_selinux() {
     #sed -i '/^SELINUX=enforcing$/s#enforcing#disabled#g' /etc/selinux/config
-    sed -i '/^SELINUX=$/c\SELINUX=disabled' /etc/selinux/config
+    sed -i '/^SELINUX=enforcing$/c\SELINUX=disabled' /etc/selinux/config
 }
 
 sysctl_limit() {
