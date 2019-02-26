@@ -1,0 +1,70 @@
+FROM centos
+MAINTAINER www.g6p.cn
+COPY resource /resource
+RUN yum install -y gcc-c++ gd-devel openssl-devel \
+    libjpeg-devel libpng-devel freetype-devel \
+    libxml2-devel curl-devel zlib-devel make \
+    libxml2-devel bzip2-devel libjpeg-devel unzip \
+    iproute net-tools telnet wget curl autoconf && \
+    yum clean all && \
+    rm -rf /var/cache/yum/*
+RUN wget http://soft.g6p.cn/deploy/source/php-7.2.8.tar.gz && \
+    wget http://soft.g6p.cn/deploy/source/php-beast-master.zip && \
+    tar zxf php-7.2.8.tar.gz && \
+    groupadd www && \
+    useradd  -g www -M -s /sbin/nologin www && \
+    cd php-7.2.8 && \
+    ./configure \
+     --prefix=/usr/local/php \
+     --with-config-file-path=/usr/local/php/etc \
+     --with-config-file-scan-dir=/usr/local/php/etc/php.d/ \
+     --with-mysqli=mysqlnd \
+     --with-pdo-mysql=mysqlnd \
+     --with-iconv \
+     --with-zlib \
+     --with-openssl \
+     --with-xmlrpc \
+     --with-gettext \
+     --with-curl \
+     --with-mhash \
+     --with-fpm-user=web \
+     --with-fpm-group=web \
+     --with-libzip \
+     --with-pear \
+     --enable-xml \
+     --enable-pdo \
+     --enable-bcmath \
+     --enable-shmop \
+     --enable-sysvsem \
+     --enable-inline-optimization \
+     --enable-mbregex \
+     --enable-fpm \
+     --enable-json \
+     --enable-mbstring \
+     --enable-ftp \
+     --enable-pcntl \
+     --enable-sockets \
+     --enable-soap \
+     --enable-session \
+     --disable-ipv6 \
+     --enable-opcache && \
+    make -j 4 && make install && \
+    cp php.ini-production /usr/local/php/etc/php.ini && \
+    mkdir /usr/local/php/etc/php.d -p && \
+    cp ./sapi/fpm/php-fpm.service /usr/lib/systemd/system/php7-fpm.service && \
+    cp /usr/local/php/etc/php-fpm.conf.default /usr/local/php/etc/php-fpm.conf && \
+    cd / && unzip php-beast-master.zip && \
+    cd php-beast-master && \
+    /usr/local/php/bin/phpize && \
+    ./configure --with-php-config=/usr/local/php/bin/php-config && \
+    make && make install && \
+    cp /resource/50-beast.ini /usr/local/php/etc/php.d/50-beast.ini && \
+    cp /resource/www.conf /usr/local/php/etc/www.conf && \ 
+    cd / && rm -rf php-7.2.8* && rm -rf php-beast-master* && \
+    rm -rf /resource && \
+    cd / && \
+    ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+ENV PATH $PATH:/usr/local/php/bin
+WORKDIR /usr/local/php
+EXPOSE 9000
+CMD ["systemctl start php7-fpm.service","-g","daemon off;"]
