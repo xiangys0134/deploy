@@ -17,10 +17,13 @@ RUN wget http://nginx.org/download/nginx-1.14.2.tar.gz && \
     make -j 4 && make install && \
     rm -rf /usr/local/nginx/html/* && \
     echo "ok">>/usr/local/nginx/html/status.html && \
+    mkdir -p /usr/local/nginx/conf/vhost && \
     cd / && rm -rf nginx-1.14.2* && \
     ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 ENV PATH $PATH:/usr/local/nginx/sbin
 COPY nginx.conf /usr/local/nginx/conf/nginx.conf
+COPY proxy_java.conf /usr/local/nginx/conf/proxy_java.conf
+COPY localhost.conf  /usr/local/nginx/conf/vhost/localhost.conf
 WORKDIR /usr/local/nginx
 EXPOSE 80
 CMD ["nginx","-g","daemon off;"]
