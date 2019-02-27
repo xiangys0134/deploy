@@ -53,18 +53,19 @@ RUN wget http://soft.g6p.cn/deploy/source/php-7.2.8.tar.gz && \
     mkdir /usr/local/php/etc/php.d -p && \
     cp ./sapi/fpm/php-fpm.service /usr/lib/systemd/system/php7-fpm.service && \
     cp /usr/local/php/etc/php-fpm.conf.default /usr/local/php/etc/php-fpm.conf && \
+    sed -i '/daemonize = yes/c\daemonize = no' /usr/local/php/etc/php-fpm.conf && \
     cd / && unzip php-beast-master.zip && \
     cd php-beast-master && \
     /usr/local/php/bin/phpize && \
     ./configure --with-php-config=/usr/local/php/bin/php-config && \
     make && make install && \
     cp /resource/50-beast.ini /usr/local/php/etc/php.d/50-beast.ini && \
-    cp /resource/www.conf /usr/local/php/etc/www.conf && \ 
+    cp /resource/www.conf /usr/local/php/etc/php-fpm.d/www.conf && \ 
     cd / && rm -rf php-7.2.8* && rm -rf php-beast-master* && \
     rm -rf /resource && \
     cd / && \
     ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-ENV PATH $PATH:/usr/local/php/bin
+ENV PATH $PATH:/usr/local/php/sbin:/usr/local/php/bin
 WORKDIR /usr/local/php
 EXPOSE 9000
-CMD ["systemctl start php7-fpm.service","-g","daemon off;"]
+CMD ["php-fpm"]

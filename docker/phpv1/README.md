@@ -4,3 +4,8 @@
 
 # 3.beast扩展加密
 
+# 4.dockerfile
+```
+docker build -t php:v6 -f Dockerfile-php .
+```
+
