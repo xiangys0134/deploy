@@ -26,14 +26,14 @@ RUN yum install -y wget && \
     mkdir -p /usr/local/tomcat-8.0.39 && \
     mv ./* /usr/local/tomcat-8.0.39/ && \
     cd / && rm -rf apache-tomcat-8.0.39* && \
-    rm -rf /resource && \   
-#ENV JAVA_HOME="/usr/local/java/jdk" \
-    #JRE_HOME="/usr/local/java/jdk/jre" \
-    #PATH="$PATH:/usr/local/java/jdk/bin:/usr/local/java/jdk/jre/bin:/usr/local/tomcat-8.0.39/bin" \
-ENV PATH="$PATH:/usr/local/java/jdk/bin:/usr/local/java/jdk/jre/bin:/usr/local/tomcat-8.0.39/bin" \
-    #CLASSPATH="/usr/local/java/jdk/lib:/usr/local/java/jdk/jre/lib"
+    rm -rf /resource   
+ENV JAVA_HOME /usr/local/java/jdk
+ENV JRE_HOME /usr/local/java/jdk/jre
+ENV PATH $PATH:/usr/local/java/jdk/bin:/usr/local/java/jdk/jre/bin:/usr/local/tomcat-8.0.39/bin
+ENV CLASSPATH /usr/local/java/jdk/lib:/usr/local/java/jdk/jre/lib
+ENV CATALINA_HOME /usr/local/tomcat-8.0.39
 #ENV PATH $PATH:/usr/local/java/jdk1.8.0/bin:/usr/local/tomcat-8.0.39/bin
 #ENV PATH $PATH
-WORKDIR /usr/local/tomcat-8.0.39
+WORKDIR $CATALINA_HOME
 EXPOSE 8080
-CMD ["catalina.sh","start"]
+CMD ["catalina.sh","run"]
