@@ -51,6 +51,8 @@ RUN wget http://soft.g6p.cn/deploy/source/php-7.2.8.tar.gz && \
     make -j 4 && make install && \
     cp php.ini-production /usr/local/php/etc/php.ini && \
     mkdir /usr/local/php/etc/php.d -p && \
+    mkdir /var/log/php-fpm -p && \
+    mkdir /data/logs/php-fpm -p && \
     cp ./sapi/fpm/php-fpm.service /usr/lib/systemd/system/php7-fpm.service && \
     cp /usr/local/php/etc/php-fpm.conf.default /usr/local/php/etc/php-fpm.conf && \
     sed -i '/daemonize = yes/c\daemonize = no' /usr/local/php/etc/php-fpm.conf && \

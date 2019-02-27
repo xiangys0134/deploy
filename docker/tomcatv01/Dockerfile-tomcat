@@ -1,0 +1,39 @@
+FROM centos
+MAINTAINER www.g6p.cn
+COPY resource /resource
+#RUN yum install -y gcc-c++ gd-devel openssl-devel \
+#    libjpeg-devel libpng-devel freetype-devel \
+#    libxml2-devel curl-devel zlib-devel make \
+#    libxml2-devel bzip2-devel libjpeg-devel unzip \
+#    iproute net-tools telnet wget curl autoconf && \
+#    yum clean all && \
+#    rm -rf /var/cache/yum/* && \
+RUN yum install -y wget && \
+    yum clean all && \
+    rm -rf /var/cache/yum/* && \
+    wget http://soft.g6p.cn/deploy/source/apache-tomcat-8.0.39.tar.gz && \
+    wget http://soft.g6p.cn/deploy/source/jdk-8u152-linux-x64.tar.gz && \
+    tar zxf jdk-8u152-linux-x64.tar.gz && \
+    tar zxf apache-tomcat-8.0.39.tar.gz && \
+    #groupadd www && \
+    #useradd  -g www -M -s /sbin/nologin www && \
+    cd jdk1.8.0_152 && \
+    mkdir -p /usr/local/java/jdk1.8.0 && \
+    mv ./* /usr/local/java/jdk1.8.0/ && \
+    ln -s /usr/local/java/jdk1.8.0 /usr/local/java/jdk && \
+    cd / && rm -rf jdk1.8.0_152* && \
+    cd apache-tomcat-8.0.39 && \
+    mkdir -p /usr/local/tomcat-8.0.39 && \
+    mv ./* /usr/local/tomcat-8.0.39/ && \
+    cd / && rm -rf apache-tomcat-8.0.39* && \
+    rm -rf /resource && \   
+#ENV JAVA_HOME="/usr/local/java/jdk" \
+    #JRE_HOME="/usr/local/java/jdk/jre" \
+    #PATH="$PATH:/usr/local/java/jdk/bin:/usr/local/java/jdk/jre/bin:/usr/local/tomcat-8.0.39/bin" \
+ENV PATH="$PATH:/usr/local/java/jdk/bin:/usr/local/java/jdk/jre/bin:/usr/local/tomcat-8.0.39/bin" \
+    #CLASSPATH="/usr/local/java/jdk/lib:/usr/local/java/jdk/jre/lib"
+#ENV PATH $PATH:/usr/local/java/jdk1.8.0/bin:/usr/local/tomcat-8.0.39/bin
+#ENV PATH $PATH
+WORKDIR /usr/local/tomcat-8.0.39
+EXPOSE 8080
+CMD ["catalina.sh","start"]
