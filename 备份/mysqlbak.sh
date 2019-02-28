@@ -5,11 +5,11 @@
 . /etc/profile
 
 #数据库用户名
-##GRANT SELECT, RELOAD, SUPER, LOCK TABLES ON *.* TO 'dumper'@'localhost' identified by 're8Z3db57dltINJdWF5e&2fMu';
+##GRANT SELECT, RELOAD, SUPER, LOCK TABLES ON *.* TO 'mysqldumper'@'localhost' identified by 're8Z3db57dltINJdWF5e&2fMu';
 ##flush privileges ;
-dbuser='dumper'
+dbuser='mysqldumper'
 #数据库用密码
-dbpasswd='re8Z3db57dltINJdWF5e&2fMu'
+dbpasswd='123456'
 #备份时间
 backtime=`date '+%Y%m%d%H%M%S'`
 t_time=`date '+%Y-%m-%d %H:%M:%S'`
@@ -32,7 +32,8 @@ dbname=`mysql -u${dbuser} -p${dbpasswd} -e "show databases;" |egrep -v "Database
 #正式备份数据库
 for db in $dbname; do
   #source=`mysqldump -u ${dbuser} -p${dbpasswd} ${db}> ${logpath}/${db}${backtime}.sql` 2>> ${logpath}/mysqllog.log;
-  mysqldump -u${dbuser} -p${dbpasswd} -F -B $db --master-data={1,2} --single-transaction --events |gzip> ${logpath}/${db}${backtime}.sql.gz 2>> ${logpath}/mysqllog.log
+  #mysqldump -u${dbuser} -p${dbpasswd} -F -B $db --master-data={1,2} --single-transaction --events |gzip> ${logpath}/${db}${backtime}.sql.gz 2>> ${logpath}/mysqllog.log
+  mysqldump -u${dbuser} -p${dbpasswd} -F -B $db --master-data={1,2} --single-transaction |gzip> ${logpath}/${db}${backtime}.sql.gz 2>> ${logpath}/mysqllog.log
   #备份成功以下操作
   if [ "$?" == 0 ];then
     cd $datapath
