@@ -27,7 +27,7 @@ function check_rpm(){
 
 function epel_install(){
     #关闭selinux,安装基础依赖环境函数
-    sed -i '/^SELINUX=.*/s/SELINUX=.*/SELINUX=disabled/g' /etc/sysconfig/selinux
+    sed -i '/^SELINUX=.*/s/SELINUX=.*/SELINUX=disabled/g' /etc/selinux/config
     setenforce 0
     #判断是否安装redhat-lsb-core
     if [ `check_rpm redhat-lsb-core` == '0' ]; then
