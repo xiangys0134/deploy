@@ -1,48 +1,68 @@
 #!/bin/bash
-#功能:数据库备份
-#yousong.xiang
-#v1.0.2
-. /etc/profile
+##author:shaobo.zheng
+##version:0.1
+#date:20180730
+#A:mysql database backup.
+#ohter:建议每周早上2点开始备份
 
-#数据库用户名
-##GRANT SELECT, RELOAD, SUPER, LOCK TABLES ON *.* TO 'dumper'@'localhost' identified by 're8Z3db57dltINJdWF5e&2fMu';
-##flush privileges ;
-dbuser='dumper'
-#数据库用密码
-dbpasswd='re8Z3db57dltINJdWF5e&2fMu'
-#备份时间
-backtime=`date '+%Y%m%d%H%M%S'`
-t_time=`date '+%Y-%m-%d %H:%M:%S'`
+#定义用户名及密码
+user=mysqldumper
+userPWD='123456'
+##GRANT SELECT, RELOAD, SUPER, LOCK TABLES ON *.* TO 'mysqldumper'@'localhost' identified by '请修改密码' ;
 
-#日志备份路径
-logpath='/data/mysqlbakup'
-#数据备份路径
-datapath='/data/mysqlbakup'
-
-if [ ! -d ${datapath} ];then 
-  mkdir ${datapath} -p
+if [ ! -d /data/backup/mysql ]; then
+    mkdir -p /data/backup/mysql
 fi
 
-#日志记录头部
-echo "备份时间为${t_time},备份数据库表 ${dbname} 开始" >> ${logpath}/log.log
+#定义备份文件存放路径
+bakDir='/data/backup/mysql'
+mysql='/bin/mysql'
+#定义日志文件
+LogFile=$bakDir/mysqlbak.log
+Now=$(date +"%Y%m%d%H%M")
+#定义备份数据库
+db=$(/bin/mysql -u$user -p$userPWD -e "show databases;"|egrep -v "sys|information_schema|Database|performance_schema|mysql")
 
-#获取数据库名
-dbname=`mysql -u${dbuser} -p${dbpasswd} -e "show databases;" |egrep -v "Database|sys|information_schema|mysql|performance_schema"`
 
-#正式备份数据库
-for db in $dbname; do
-  #source=`mysqldump -u ${dbuser} -p${dbpasswd} ${db}> ${logpath}/${db}${backtime}.sql` 2>> ${logpath}/mysqllog.log;
-  mysqldump -u${dbuser} -p${dbpasswd} -F -B $db --master-data={1,2} --single-transaction --events |gzip> ${logpath}/${db}${backtime}.sql.gz 2>> ${logpath}/mysqllog.log
-  #备份成功以下操作
-  if [ "$?" == 0 ];then
-    cd $datapath
+cd $bakDir || exit
 
-    #删除七天前备份，也就是只保存7天内的备份
-    #find $datapath -name "*.tar.gz" -type f -mtime +7 -exec rm -rf {} \; > /dev/null 2>&1
-    find $datapath -name "*.gz" -type f -mtime +15 -exec rm -rf {} \; > /dev/null 2>&1
-    echo "${t_time} 数据库 ${db} 备份成功!!" >> ${logpath}/mysqllog.log
-  else
-    #备份失败则进行以下操作
-    echo "${t_time} 数据库 ${db} 备份失败!!" >> ${logpath}/mysqllog.log
-  fi
+function log_record(){
+        log_message=$1
+        echo "$(date +"%Y-%m-%d %H:%M:%S") $log_message" >>$LogFile
+        }
+
+function backup_data(){
+        dbname=$1;
+        filename=$2;
+        log_record "start dump $File "
+        /bin/mysqldump -u $user -p$userPWD -F --databases $dbname --master-data=2 > $filename
+        [[ $? != '0' ]] && log_record "Dump $File fail." ||  log_record "$dbname Backup Success"
+}
+
+function commpress_data(){
+        log_record "start commpress $File to $File\.tar.gz"
+        source_filename=$1
+        dst_filename=$2
+        tar czf $dst_filename $source_filename
+        [[ $? == '0' ]] && rm $source_filename|| log_record "commpress_data $File $File\.tar.gz fail."
+}
+
+
+if [[ -z $db ]] ; then  log_record "Get databases list is null." && exit 5; fi
+
+for dbname in $db
+do
+File=$dbname-$Now.sql
+backup_data $dbname $File
 done
+
+
+for dbname in $db
+do
+File=$dbname-$Now.sql
+commpress_data $File $File\.tar.gz
+done
+
+log_record "--------------------------"
+
+cd $bakDir && find $bakDir -name "*.tar.gz" -type f -mtime +7 | xargs rm > /dev/null 2>&1 exit
