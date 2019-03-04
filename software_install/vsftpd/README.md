@@ -18,3 +18,5 @@ account required /lib64/security/pam_userdb.so db=/etc/vsftpd/vftpuser
 # 5.vsftpd密码信息
 账号默认回车为admin，密码默认回车或者等待30秒则随机生成密码值
 
+
+
