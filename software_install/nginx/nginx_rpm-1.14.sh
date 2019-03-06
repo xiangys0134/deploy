@@ -1,7 +1,8 @@
 #!/bin/bash
-#yousong.xiang 2018.9.30
-#
-#v1.0.1
+# Nginx1.14 rpm包安装
+# Author yousong.xiang 250919938@qq.com
+# Date 2018.9.30
+# v1.0.1
 
 [ -f /etc/profile ] && . /etc/profile
 [ -f /etc/init.d/functions ] && . /etc/init.d/functions
