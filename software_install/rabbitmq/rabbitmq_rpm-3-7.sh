@@ -60,7 +60,7 @@ function erl_install() {
     
     rpm -Uvh erlang-solutions-1.0-1.noarch.rpm &>/dev/null
 
-    rpm -y install erlang &>/dev/null
+    yum install -y erlang &>/dev/null
     if [ $? -ne 0 ]; then
         echo -e "\033[31mInstall erlang faild\033[0m"
         exit 5
@@ -86,7 +86,9 @@ EOF
         echo -e "\033[31mInstall rabbitmq-server faild\033[0m"
     fi
 
-
 }
 
-
+env_check
+selinux_stop
+erl_install
+rabbit_install
