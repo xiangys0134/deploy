@@ -50,8 +50,6 @@ zabbix_get -s 192.168.182.129 -k 'disk.discovery[*]'
 
 [root@localhost ansible]# ansible zabbix -m ping -s        //连接测试
 
-![img](file:///C:/Users/Administrator/Documents/My Knowledge/temp/e6ddb870-0572-4627-aaea-66fed865d36f/128/index_files/692742b4-6a2b-43d5-bac2-23216341231d.png)
-
 
 
 三、推送zabbix
