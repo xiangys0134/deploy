@@ -2,12 +2,16 @@
 #Description: php7.2.8源码安装
 #Author: yousong.xiang 
 #Date: 2018.11.29
-#version: v1.0.2
+#version: v1.0.3
 [ -f /etc/profile ] && . /etc/profile
 
 cmd=`dirname $0`
 url='http://soft.g6p.cn/deploy/source'
 #soft_rpm=" gcc-c++ gd-devel libjpeg-devel libpng-devel freetype-devel libxml2-devel curl-devel zlib-devel libxml2-devel bzip2-devel libjpeg-devel"
+
+if [ "${cmd}" == '.' ]; then
+    cmd=`pwd`
+fi
 
 if [ $# -ne 1 ]; then
     echo -e "\033[31m传递参数有误\033[0m"
@@ -22,7 +26,7 @@ function check_rpm() {
 
 function epel_install() {
     #关闭selinux,安装基础依赖环境函数
-    sed -i '/^SELINUX=.*/s/SELINUX=.*/SELINUX=disabled/g' /etc/sysconfig/selinux
+    sed -i '/^SELINUX=enforcing$/c\SELINUX=disabled' /etc/selinux/config
     setenforce 0
     #判断是否安装redhat-lsb-core
     if [ `check_rpm redhat-lsb-core` == '0' ]; then
@@ -71,6 +75,10 @@ function php7_install() {
      php_code='php-7.2.8'
      
      #echo "aaaaa"
+     if [ -d ${php7_dir} ]; then
+         mv ${php7_dir} ${php7_dir}bak
+     fi
+
      cd ${cmd}
 
      if [ -f /var/log/php7.lock ]; then
@@ -184,6 +192,8 @@ function php7_install() {
     
      /bin/systemctl enable php7-fpm.service
      /bin/systemctl start php7-fpm.service
+
+     touch /var/log/php7.lock
    
 }
 
