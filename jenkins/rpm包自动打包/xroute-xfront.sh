@@ -45,10 +45,6 @@ function rpm_upload() {
     fi
 
     echo "RPM upload start time: $(date +"%Y-%m-%d %H:%M:%S")"
-    echo "${JENKINS_HOME}/rpmbuild/RPMS/x86_64"
-    ls ${JENKINS_HOME}/rpmbuild/RPMS/x86_64
-    echo "${ftp_dir}/${JOB_NAME}"
-    echo "${JENKINS_HOME}/rpmbuild/RPMS/x86_64/${JOB_NAME}*rpm"
     sudo mv -f ${JENKINS_HOME}/rpmbuild/RPMS/x86_64/${JOB_NAME}*rpm ${ftp_dir}/${JOB_NAME}/branch
     if [ $? -ne 0 ]; then
         echo "RPM包上传失败"
