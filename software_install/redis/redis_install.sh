@@ -316,7 +316,8 @@ EOF
 
 function redis_install() {
     redis_data=$1
-    redis_port="6380 6381"
+    #redis_port="6380 6381"
+	redis_port="6380"
     redis_cf=${redis_data}/conf/redis-${redis_port}.conf
     #判断是否安装redis,如果没有安装则安装
     if [ `check_rpm redis` == '0' ]; then
