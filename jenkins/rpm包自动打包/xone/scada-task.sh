@@ -19,7 +19,7 @@ function build_scadatask() {
         fi
     else
         tag="yes"
-        
+        ver=`echo ${select} |awk -F "" '{for(i=2;i<=NF;i++){printf $i}}'`        
     fi
     cd ${WORKSPACE}
     mvn clean compile verify -P prod -Dmaven.test.skip=true
