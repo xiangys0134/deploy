@@ -115,6 +115,7 @@ EOF
 
     cat >>/etc/vsftpd/vsftpd.conf<<EOF
 anonymous_enable=NO
+use_localtime=yes
 local_enable=YES
 write_enable=NO
 local_umask=022
