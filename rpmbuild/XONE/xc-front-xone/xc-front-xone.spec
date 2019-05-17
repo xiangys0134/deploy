@@ -5,7 +5,7 @@ Version:master.13
 
 Group: Applications		
 License: BSD
-URL: http://www.xuncetech.com/
+URL: https://github.com/xiangys0134
 Source0: xc-front-xone
 
 BuildRequires: nodejs	

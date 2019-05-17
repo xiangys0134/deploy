@@ -5,7 +5,7 @@ Summary:	xunce xone
 
 Group:		Applications
 License:	BSD
-URL:		http://www.xuncetech.com/
+URL:		https://github.com/xiangys0134
 Source0:	xc-xone/
 
 BuildRequires:	java-1.8.0-openjdk java-1.8.0-openjdk-devel fastdfs
@@ -39,10 +39,10 @@ mkdir -p %{buildroot}/data/xc-xone/sql_files
 cp -r $RPM_BUILD_DIR/xc-xone/db/* %{buildroot}/data/xc-xone/sql_files
 
 %post
-srvname=`ls %{buildroot}/data/xc-xone/ |grep -v "all_libs" |grep -v "sql_files"`
+srvname=`ls /data/xc-xone/ |grep -v "all_libs" |grep -v "sql_files"`
 for srv in ${srvname}
 do
-    ln -sf %{buildroot}/data/xc-xone/all_libs %{buildroot}/data/xc-xone/${srv}/lib
+    ln -sf /data/xc-xone/all_libs /data/xc-xone/${srv}/lib
 done
 
 echo -e "\033[32m 请到/data/xc-xone/sql_files下手动执行sql脚本!!! \033[0m"
