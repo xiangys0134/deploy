@@ -1,5 +1,5 @@
 Name:	xc-xone		
-Version:	master.22	
+Version:1.0.1
 Release:	1%{?dist}
 Summary:	xunce xone
 
@@ -16,6 +16,7 @@ xc-xone
 
 %prep
 
+
 %build
 cd xc-xone
 source /etc/profile
@@ -27,7 +28,7 @@ fi
 
 %install
 mkdir -p %{buildroot}/data/xc-xone/all_libs
-srvname=`ls /root/rpmbuild/BUILD/xc-xone/ |grep -v "pom.xml" |grep -v "db" |grep -v "doc"`
+srvname=`ls $RPM_BUILD_DIR/xc-xone/ |grep -v "pom.xml" |grep -v "db" |grep -v "doc"`
 for srv in ${srvname}
 do
     cp -r $RPM_BUILD_DIR/xc-xone/${srv}/target/${srv}-[0-9]*.[0-9]*.[0-9]*-SNAPSHOT-dist/${srv} %{buildroot}/data/xc-xone/
