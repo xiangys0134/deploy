@@ -50,6 +50,8 @@ function upload_file() {
         ls ${JENKINS_HOME}/rpmbuild/RPMS/x86_64
         echo "${ftp_dir}/${JOB_NAME}"
         echo "${JENKINS_HOME}/rpmbuild/RPMS/x86_64/${JOB_NAME}*rpm"
+        mkdir -p ${WORKSPACE}/${ftp_tag}
+        cp -r ${JENKINS_HOME}/rpmbuild/RPMS/x86_64/${JOB_NAME}*.rpm ${WORKSPACE}/${ftp_tag}
         sudo mv -f ${JENKINS_HOME}/rpmbuild/RPMS/x86_64/${JOB_NAME}*.rpm ${ftp_dir}/XONE/${JOB_NAME}/${ftp_tag}
         if [ $? -ne 0 ]; then
           echo "RPM包上传失败"

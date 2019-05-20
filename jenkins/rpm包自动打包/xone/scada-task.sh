@@ -46,6 +46,9 @@ function upload_file() {
         echo "## RPM upload start time: $(date +"%Y-%m-%d %H:%M:%S")"
 
         cd ${WORKSPACE}/target/${JOB_NAME}-[0-9]*.[0-9]*.[0-9]*-SNAPSHOT-dist/
+    
+        mkdir -p ${WORKSPACE}/${ftp_tag}
+        cp -r ${JOB_NAME}-${ver}.tar.gz ${WORKSPACE}/${ftp_tag}
         sudo mv -f ${JOB_NAME}-${ver}.tar.gz ${ftp_dir}/XONE/${JOB_NAME}/${ftp_tag}
         if [ $? -eq 0 ]; then
             echo "upload file success"
@@ -55,7 +58,6 @@ function upload_file() {
             exit 5
         fi
 
-        sudo chown -R ftp. ${ftp_dir}/XONE
         echo "## RPM upload end time: $(date +"%Y-%m-%d %H:%M:%S")"
 
 }
@@ -79,6 +81,7 @@ function backup_scadatask() {
     fi
 
 }
+
 
 build_scadatask
 backup_scadatask
