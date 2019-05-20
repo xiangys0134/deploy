@@ -1,5 +1,5 @@
 Name:xroute-xfront	
-Version:dev_weiqi.li.27
+Version:1.1
 Release:	1%{?dist}
 Summary:xunce xroute-xfront service 	
 
@@ -38,6 +38,8 @@ cp -rf $RPM_BUILD_DIR/xroute-xfront/xfront/bin/workspace/* %{buildroot}/data/xcr
 mkdir -p %{buildroot}/usr/lib/xcrf/thirdparty
 cp -rf $RPM_BUILD_DIR/xroute-xfront/xfront/3rdparty/libt2sdk.so %{buildroot}/usr/lib/xcrf/thirdparty/
 chmod -R 755 %{buildroot}/usr/lib/xcrf/
+[ -f ${WORKSPACE}/version ] && sudo cp ${WORKSPACE}/version %{buildroot}/data/xcrf/
+
 %{__install} -p -D -m 0755 /data/jenkins/build/xroute-xfront/xcrf.conf %{buildroot}/etc/ld.so.conf.d/xcrf.conf
 
 %post

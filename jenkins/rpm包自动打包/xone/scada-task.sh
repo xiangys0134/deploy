@@ -6,10 +6,7 @@
 
 [ -f /etc/profile ] && . /etc/profile
 ftp_dir=/data/vsftpd_data/admin
-ftp_host='192.168.40.148'
-#echo "${WORKSPACE}"
-#echo "${JENKINS_HOME}/${WORKSPACE}/${JOB_NAME}"
-
+ftp_host='192.168.5.205'
 
 function build_scadatask() {    
     ver='1.0.0'
@@ -25,7 +22,7 @@ function build_scadatask() {
         tag="yes"
         
     fi
-    cd ${WORKSPACE}
+    #cd ${WORKSPACE}
     echo ""
     echo "## maven build start time: $(date +"%Y-%m-%d %H:%M:%S")"
     echo ""
@@ -37,10 +34,30 @@ function build_scadatask() {
     echo ""
     echo "## maven build stop time: $(date +"%Y-%m-%d %H:%M:%S")"
     echo ""
-    #cd ${WORKSPACE}/target/${JOB_NAME}-[0-9]*.[0-9]*.[0-9]*-SNAPSHOT-dist/
-    cd ${WORKSPACE}/target/${JOB_NAME}-*
+    [ -f version ] && cp version ${WORKSPACE}/target/${JOB_NAME}-[0-9]*.[0-9]*.[0-9]*-SNAPSHOT-dist/${JOB_NAME}/
+    cd ${WORKSPACE}/target/${JOB_NAME}-[0-9]*.[0-9]*.[0-9]*-SNAPSHOT-dist/
     mv ${JOB_NAME} ${JOB_NAME}-${ver}
     tar -czf ${JOB_NAME}-${ver}.tar.gz ${JOB_NAME}-${ver} 
+}
+
+
+function upload_file() {
+        ftp_tag=$1
+        echo "## RPM upload start time: $(date +"%Y-%m-%d %H:%M:%S")"
+
+        cd ${WORKSPACE}/target/${JOB_NAME}-[0-9]*.[0-9]*.[0-9]*-SNAPSHOT-dist/
+        sudo mv -f ${JOB_NAME}-${ver}.tar.gz ${ftp_dir}/XONE/${JOB_NAME}/${ftp_tag}
+        if [ $? -eq 0 ]; then
+            echo "upload file success"
+            echo "ftp://${ftp_host}/XONE/${JOB_NAME}/${ftp_tag}/${JOB_NAME}-${ver}.tar.gz"
+        else
+            echo "upload file failed"
+            exit 5
+        fi
+
+        sudo chown -R ftp. ${ftp_dir}/XONE
+        echo "## RPM upload end time: $(date +"%Y-%m-%d %H:%M:%S")"
+
 }
 
 function backup_scadatask() {
@@ -48,45 +65,17 @@ function backup_scadatask() {
         if [ ! -d ${ftp_dir}/XONE/${JOB_NAME}/dev ]; then
             sudo mkdir -p ${ftp_dir}/XONE/${JOB_NAME}/dev
         fi
-        #cd ${WORKSPACE}/target/${JOB_NAME}-[0-9]*.[0-9]*.[0-9]*-SNAPSHOT-dist/
-        cd ${WORKSPACE}/target/${JOB_NAME}-*
-        sudo mv ${JOB_NAME}-${ver}.tar.gz ${ftp_dir}/XONE/${JOB_NAME}/dev
-        if [ $? -eq 0 ]; then
-            echo "upload file success"
-            echo "ftp://${ftp_host}/XONE/${JOB_NAME}/dev/${JOB_NAME}-${ver}.tar.gz"
-        else
-            echo "upload file failed"
-            exit 5
-        fi
+        upload_file dev
     elif [ "${tag}" == "yes" ]; then
-        if [ -d ${ftp_dir}/XONE/${JOB_NAME}/tag ]; then
+        if [ ! -d ${ftp_dir}/XONE/${JOB_NAME}/tag ]; then
             sudo mkdir -p ${ftp_dir}/XONE/${JOB_NAME}/tag
         fi
-        #cd ${WORKSPACE}/target/${JOB_NAME}-[0-9]*.[0-9]*.[0-9]*-SNAPSHOT-dist/
-        cd ${WORKSPACE}/target/${JOB_NAME}-*
-        sudo mv ${JOB_NAME}-${ver}.tar.gz ${ftp_dir}/XONE/${JOB_NAME}/tag
-        if [ $? -eq 0 ]; then
-            echo "upload file success"
-            echo "ftp://${ftp_host}/XONE/${JOB_NAME}/tag/${JOB_NAME}-${ver}.tar.gz"
-        else
-            echo "upload file failed"
-            exit 6
-        fi
+        upload_file tag
     else
         if [ ! -d ${ftp_dir}/XONE/${JOB_NAME}/brach ]; then
             sudo mkdir -p ${ftp_dir}/XONE/${JOB_NAME}/brach
         fi
-        #cd ${WORKSPACE}/target/${JOB_NAME}-[0-9]*.[0-9]*.[0-9]*-SNAPSHOT-dist/
-        cd ${WORKSPACE}/target/${JOB_NAME}-*
-        sudo mv ${JOB_NAME}-${ver}.tar.gz ${ftp_dir}/XONE/${JOB_NAME}/brach
-        if [ $? -eq 0 ]; then
-            echo "upload file success"
-            echo "ftp://${ftp_host}/XONE/${JOB_NAME}/brach/${JOB_NAME}-${ver}.tar.gz"
-        else
-            echo "upload file failed"
-            exit 6
-        fi
-
+        upload_file brach
     fi
 
 }

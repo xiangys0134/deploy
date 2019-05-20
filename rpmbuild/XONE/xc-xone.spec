@@ -1,5 +1,5 @@
 Name:	xc-xone		
-Version:1.0.1
+Version:1.1.0
 Release:	1%{?dist}
 Summary:	xunce xone
 
@@ -15,7 +15,7 @@ Requires:	fastdfs java-1.8.0-openjdk
 xc-xone
 
 %prep
-
+sudo rm -rf %{_rpmdir}/x86_64/xc-xone*.rpm
 
 %build
 cd xc-xone
@@ -28,7 +28,7 @@ fi
 
 %install
 mkdir -p %{buildroot}/data/xc-xone/all_libs
-srvname=`ls $RPM_BUILD_DIR/xc-xone/ |grep -v "pom.xml" |grep -v "db" |grep -v "doc"`
+srvname=`ls $RPM_BUILD_DIR/xc-xone/ |grep -v "pom.xml" |grep -v "db" |grep -v "doc"|grep -v "version"`
 for srv in ${srvname}
 do
     cp -r $RPM_BUILD_DIR/xc-xone/${srv}/target/${srv}-[0-9]*.[0-9]*.[0-9]*-SNAPSHOT-dist/${srv} %{buildroot}/data/xc-xone/
@@ -36,6 +36,7 @@ do
     rm -rf %{buildroot}/data/xc-xone/${srv}/lib
 done
 
+[ -f ${WORKSPACE}/version ] && sudo cp ${WORKSPACE}/version %{buildroot}/data/xc-xone/ 
 mkdir -p %{buildroot}/data/xc-xone/sql_files
 cp -r $RPM_BUILD_DIR/xc-xone/db/* %{buildroot}/data/xc-xone/sql_files
 

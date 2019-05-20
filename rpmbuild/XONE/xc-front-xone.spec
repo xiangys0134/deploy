@@ -1,11 +1,11 @@
 Name: xc-front-xone		
 Release:	1%{?dist}
 Summary:xunce xone web service
-Version:master.13
+Version:1.1.0
 
 Group: Applications		
 License: BSD
-URL: https://github.com/xiangys0134
+URL: http://www.xuncetech.com/
 Source0: xc-front-xone
 
 BuildRequires: nodejs	
@@ -28,6 +28,7 @@ sudo rm -rf %{buildroot}/data/xc-front-xone
 sudo mkdir -p %{buildroot}/data/xc-front-xone
 sudo chown -R jenkins. %{buildroot}
 cp -r $RPM_BUILD_DIR/xc-front-xone/dist/. %{buildroot}/data/xc-front-xone
+[ -f $RPM_BUILD_DIR/xc-front-xone/version ] && cp $RPM_BUILD_DIR/xc-front-xone/version %{buildroot}/data/xc-front-xone
 %{__install} -p -D -m 0644 /data/jenkins/build/xc-front-xone/xc-front-xone.conf %{buildroot}/etc/nginx/conf.d/xc-front-xone.conf
  
 %post
