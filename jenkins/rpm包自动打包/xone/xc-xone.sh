@@ -47,6 +47,7 @@ function build_pkg() {
 }
 
 
+
 function upload_file() {
         ftp_tag=$1
         echo "## RPM upload start time: $(date +"%Y-%m-%d %H:%M:%S")"
@@ -54,6 +55,8 @@ function upload_file() {
         ls ${JENKINS_HOME}/rpmbuild/RPMS/x86_64
         echo "${ftp_dir}/${JOB_NAME}"
         echo "${JENKINS_HOME}/rpmbuild/RPMS/x86_64/${JOB_NAME}*rpm"
+        mkdir -p ${WORKSPACE}/${ftp_tag}
+        cp -r ${JENKINS_HOME}/rpmbuild/RPMS/x86_64/${JOB_NAME}*.rpm ${WORKSPACE}/${ftp_tag}
         sudo mv -f ${JENKINS_HOME}/rpmbuild/RPMS/x86_64/${JOB_NAME}*.rpm ${ftp_dir}/XONE/${JOB_NAME}/${ftp_tag}
         if [ $? -ne 0 ]; then
           echo "RPM包上传失败"
@@ -63,6 +66,44 @@ function upload_file() {
         echo "## RPM upload end time: $(date +"%Y-%m-%d %H:%M:%S")"
 
 }
+
+
+function git_upload() {
+    #ftp_tag=$1 ftp_tag取了upload_file函数内的变量，这里处理机制存在问题
+    release_tag=${select}-yw
+    git_url=git@192.168.0.38:ops/xc-xone-pack.git
+    gir_dir=`echo ${git_url}|awk -F [/.] '{print $(NF-1)}'`
+    if [[ "${release_tag}" =~ "origin" ]] || [[ "${release_tag}" =~ "xc-xone" ]]; then
+        echo "The branch not need to pack"
+        return 0
+    fi
+    cd ${WORKSPACE}
+    echo "pull_git start time: " `date '+%Y-%m-%d %H:%M:%S'`
+    mkdir git_tmp && cd ${WORKSPACE}/git_tmp
+    git clone ${git_url}
+    cd ${gir_dir}
+    /bin/rsync  -vzrtopgl --delete --exclude .git ${WORKSPACE}/${ftp_tag}/ ${WORKSPACE}/git_tmp/${gir_dir}
+    if [ $? -ne 0 ]; then
+        echo "rsyncd filed"
+        return 0
+    fi
+
+    git add --all
+    git commit -m "${release_tag}"
+    tag_sum=`git tag -l "${release_tag}"|wc -1`
+    if [ ${tag_sum} -eq 1 ]; then
+        git tag -d "${release_tag}"
+        git push origin -d "${release_tag}"
+    fi
+
+    git tag -a -f -m "" "$release_tag"
+    [[ $? != '0' ]] && echo "git add tag $release_tag fail" && return 0 || echo "git add tag $release_tag successd"
+    git push ${git_url}  "$release_tag" -f
+    [[ $? != '0' ]] && echo "git push tag failed" && return 0 || echo "git push tag successd"
+    echo "pull_git End time: " `date '+%Y-%m-%d %H:%M:%S'`
+
+}
+
 
 function rpm_check_tag() {
     if [ "${tag}" == "dev" ]; then
@@ -87,3 +128,5 @@ function rpm_check_tag() {
 
 build_pkg
 rpm_check_tag
+git_upload
+

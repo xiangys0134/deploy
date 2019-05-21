@@ -66,10 +66,10 @@ function upload_file() {
 
 function git_upload() {
     #ftp_tag=$1
-    release_tag=${select}
+    release_tag=${select}-yw
     git_url=git@192.168.0.38:ops/xc-xone-ops.git
-
-    if [[ "${release_tag}" =~ "origin" ]] || [[ $select =~ "scada-task" ]]; then
+    gir_dir=`echo ${git_url}|awk -F [/.] '{print $(NF-1)}'`
+    if [[ "${release_tag}" =~ "origin" ]] || [[ "${release_tag}" =~ "scada-task" ]]; then
         echo "The branch not need to pack"
         return 0
     fi
@@ -77,8 +77,8 @@ function git_upload() {
     echo "pull_git start time: " `date '+%Y-%m-%d %H:%M:%S'`
     mkdir git_tmp && cd ${WORKSPACE}/git_tmp
     git clone ${git_url}
-    cd xc-xone-ops
-    /bin/rsync  -vzrtopgl --delete --exclude .git ${WORKSPACE}/${ftp_tag}/ ${WORKSPACE}/git_tmp/xc-xone-ops
+    cd ${gir_dir}
+    /bin/rsync  -vzrtopgl --delete --exclude .git ${WORKSPACE}/${ftp_tag}/ ${WORKSPACE}/git_tmp/${gir_dir}
     if [ $? -ne 0 ]; then
         echo "rsyncd filed"
         return 0
