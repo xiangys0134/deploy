@@ -11,7 +11,7 @@ select=${select}
 
 function build_scadatask() {    
     ver='1.0.0'
-    if [[ $select =~ "origin" ]]; then
+    if [[ $select =~ "origin" ]] || [[ $select =~ "scada-task" ]]; then
         ver1=`echo ${select}|awk -F '/' '{print $2}'`
         ver=${ver1}.${BUILD_ID}
         if [ "${ver1}" == "dev" ]; then
@@ -36,7 +36,8 @@ function build_scadatask() {
     echo "## maven build stop time: $(date +"%Y-%m-%d %H:%M:%S")"
     echo ""
     [ -f version ] && cp version ${WORKSPACE}/target/${JOB_NAME}-[0-9]*.[0-9]*.[0-9]*-SNAPSHOT-dist/${JOB_NAME}/
-    cd ${WORKSPACE}/target/${JOB_NAME}-[0-9]*.[0-9]*.[0-9]*-SNAPSHOT-dist/
+    cd ${WORKSPACE}/target/${JOB_NAME}-[0-9]*.[0-9]*.[0-9]*-SNAPSHOT-dist/ 
+    echo "mv ${JOB_NAME} ${JOB_NAME}-${ver}"
     mv ${JOB_NAME} ${JOB_NAME}-${ver}
     tar -czf ${JOB_NAME}-${ver}.tar.gz ${JOB_NAME}-${ver} 
 }
@@ -63,6 +64,43 @@ function upload_file() {
 
 }
 
+function git_upload() {
+    #ftp_tag=$1
+    release_tag=${select}
+    git_url=git@192.168.0.38:ops/xc-xone-ops.git
+
+    if [[ "${release_tag}" =~ "origin" ]] || [[ $select =~ "scada-task" ]]; then
+        echo "The branch not need to pack"
+        return 0
+    fi
+    cd ${WORKSPACE}
+    echo "pull_git start time: " `date '+%Y-%m-%d %H:%M:%S'`
+    mkdir git_tmp && cd ${WORKSPACE}/git_tmp
+    git clone ${git_url}
+    cd xc-xone-ops
+    /bin/rsync  -vzrtopgl --delete --exclude .git ${WORKSPACE}/${ftp_tag}/ ${WORKSPACE}/git_tmp/xc-xone-ops
+    if [ $? -ne 0 ]; then
+        echo "rsyncd filed"
+        return 0
+    fi
+
+    git add --all
+    git commit -m "${release_tag}"
+    tag_sum=`git tag -l "${release_tag}"|wc -1`
+    if [ ${tag_sum} -eq 1 ]; then
+        git tag -d "${release_tag}"
+        git push origin -d "${release_tag}"
+    fi
+
+    git tag -a -f -m "" "$release_tag"
+    [[ $? != '0' ]] && echo "git add tag $release_tag fail" && return 0 || echo "git add tag $release_tag successd"
+    git push ${git_url}  "$release_tag" -f
+    [[ $? != '0' ]] && echo "git push tag failed" && return 0 || echo "git push tag successd"
+    echo "pull_git End time: " `date '+%Y-%m-%d %H:%M:%S'`
+
+}
+
+
 function backup_scadatask() {
     if [ "${tag}" == "dev" ]; then
         if [ ! -d ${ftp_dir}/XONE/${JOB_NAME}/dev ]; then
@@ -86,3 +124,4 @@ function backup_scadatask() {
 
 build_scadatask
 backup_scadatask
+git_upload
