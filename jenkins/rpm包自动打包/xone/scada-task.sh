@@ -7,6 +7,7 @@
 [ -f /etc/profile ] && . /etc/profile
 ftp_dir=/data/vsftpd_data/admin
 ftp_host='192.168.5.205'
+select=${select}
 
 function build_scadatask() {    
     ver='1.0.0'
@@ -20,7 +21,7 @@ function build_scadatask() {
         fi
     else
         tag="yes"
-        
+        ver=${select##v} 
     fi
     #cd ${WORKSPACE}
     echo ""
