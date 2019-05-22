@@ -10,51 +10,64 @@ base_dir=`pwd`
 host_user=root
 
 function server_stop() {
-    process_sum=`ps -ef|grep xc-xone|egrep -v "grep|$0|xone_start"|wc -l`
+    process_sum=`ps -ef|grep xc-xone|egrep -v "grep|xone_start"|wc -l`
     if [ ${process_sum} -eq 0 ]; then
         return 0
     fi
-    ps -ef|grep xc-xone|egrep -v "grep|$0|xone_start"|awk '{print "kill -9 "$2}'|bash
+    ps -ef|grep xc-xone|egrep -v "grep|xone_start"|awk '{print $2}'|while read process
+    do
+        sudo kill -9 ${process}
+    done
 }
 
 function server_start() {
 cd /data/xc-xone
 
+echo "sudo bash ./regitry-server/bin/run.sh start"
 sudo bash ./regitry-server/bin/run.sh start
 sleep 10
 #checkport 8761
 
+echo "sudo bash ./monitor-service/bin/run.sh start"
 sudo bash ./monitor-service/bin/run.sh start
 sleep 10
 #checkport 8765
 
+echo "sudo bash ./config-server/bin/run.sh start"
 sudo bash ./config-server/bin/run.sh start
 sleep 10
 #checkport 8763
 
+echo "sudo bash ./gateway/bin/run.sh start"
 sudo bash ./gateway/bin/run.sh start
 sleep 10
 #checkport 8762
 
+echo "sudo bash ./tm-service/bin/run.sh start"
 sudo bash ./tm-service/bin/run.sh start
 sleep 10
 #checkport 7970
 
+echo "sudo bash ./file-service/bin/run.sh start"
 sudo bash ./file-service/bin/run.sh start
 sleep 10
 #checkport 8768
 
+echo "sudo bash ./oauth-service/bin/run.sh start"
 sudo bash ./oauth-service/bin/run.sh start
 sleep 10
 #checkport 8766
 
+echo "sudo bash ./user-service/bin/run.sh start"
 sudo bash ./user-service/bin/run.sh start
 sleep 10
 #checkport 8764
 
+echo "sudo bash ./bond-service/bin/run.sh start"
 sudo bash ./bond-service/bin/run.sh start
 sleep 10
 #checkport 8767
+return 0
 }
 
 function pkg_update() {
