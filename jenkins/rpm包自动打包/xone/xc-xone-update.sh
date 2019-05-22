@@ -10,45 +10,49 @@ base_dir=`pwd`
 host_user=root
 
 function server_stop() {
+    process_sum=`ps -ef|grep xc-xone|egrep -v "grep|$0|xone_start"|wc -l`
+    if [ ${process_sum} -eq 0 ]; then
+        return 0
+    fi
     ps -ef|grep xc-xone|egrep -v "grep|$0|xone_start"|awk '{print "kill -9 "$2}'|bash
 }
 
 function server_start() {
 cd /data/xc-xone
 
-./regitry-server/bin/run.sh start
+sudo bash ./regitry-server/bin/run.sh start
 sleep 10
 #checkport 8761
 
-./monitor-service/bin/run.sh start
+sudo bash ./monitor-service/bin/run.sh start
 sleep 10
 #checkport 8765
 
-./config-server/bin/run.sh start
+sudo bash ./config-server/bin/run.sh start
 sleep 10
 #checkport 8763
 
-./gateway/bin/run.sh start
+sudo bash ./gateway/bin/run.sh start
 sleep 10
 #checkport 8762
 
-./tm-service/bin/run.sh start
+sudo bash ./tm-service/bin/run.sh start
 sleep 10
 #checkport 7970
 
-./file-service/bin/run.sh start
+sudo bash ./file-service/bin/run.sh start
 sleep 10
 #checkport 8768
 
-./oauth-service/bin/run.sh start
+sudo bash ./oauth-service/bin/run.sh start
 sleep 10
 #checkport 8766
 
-./user-service/bin/run.sh start
+sudo bash ./user-service/bin/run.sh start
 sleep 10
 #checkport 8764
 
-./bond-service/bin/run.sh start
+sudo bash ./bond-service/bin/run.sh start
 sleep 10
 #checkport 8767
 }
@@ -66,6 +70,7 @@ function pkg_update() {
         return 4
     fi
 
+    echo "rpm -Uvh ${pkg_name} --force"
     sudo rpm -Uvh ${pkg_name} --force
     if [ $? -ne 0 ]; then
         echo "rpm Uvh failed"
@@ -74,7 +79,7 @@ function pkg_update() {
         echo "rpm Uvh success"
         return 0
     fi
-  
+}  
 
 server_stop
 pkg_update
