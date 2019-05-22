@@ -18,7 +18,7 @@ function pkg_update() {
         return 6
     fi
     pkg_name=`ls *rpm 2>/dev/null |awk '{print $0}'`
-    if [ -z "${tar_name}" ]; then
+    if [ -z "${pkg_name}" ]; then
         echo "更新包获取失败"
         return 4
     fi
