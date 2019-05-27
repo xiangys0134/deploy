@@ -103,6 +103,7 @@ function set_su_admin() {
 
 #设置ssh禁止root登录
 function set_sshroot() {
+    setenforce 0
     /bin/cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
     sed -i '/#PermitRootLogin yes/s@#PermitRootLogin yes@PermitRootLogin no@g' /etc/ssh/sshd_config
     if [ $? -eq 0 ]; then
