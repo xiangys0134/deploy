@@ -6,9 +6,10 @@ Summary:	GUN nginx-1.14.2
 Group:		Application/WebServer
 License:	GPL
 URL:		http://www.github.com/xiangys0134
-Source0:	master.zip
-Source1:	nginx-1.14.2.tar.gz
-Source2:	nginx_config.tar.gz
+Source0:	nginx-1.14.2.tar.gz
+Source1:	nginx_config.tar.gz
+#Source2:	nginx_upstream_check_module-master.tar.gz
+Source2:	master.zip
 
 #BuildRequires:	gcc>=4.4.7,gcc-c++>=4.4.7,pcre-devel>=8.12,openssl-devel>=1.0.1e,patch>=2.7.1,unzip>=2.11,make>=3.82
 BuildRequires:	gcc,gcc-c++,pcre-devel,openssl-devel,patch,unzip,make
@@ -18,6 +19,12 @@ BuildRequires:	gcc,gcc-c++,pcre-devel,openssl-devel,patch,unzip,make
 nginx-1.14.2
 
 %prep
+#rm -rf $RPM_BUILD_DIR/nginx-1.14.2
+#rm -rf $RPM_BUILD_DIR/nginx_config
+#rm -rf $RPM_BUILD_DIR/nginx_upstream_check_module-master
+%setup -T -b 0 -n nginx-14.2 -b 1 -n nginx_config -b 2 -n nginx_upstream_check_module-master
+#%setup -b 1 -b 2 
+cd $RPM_BUILD_DIR
 if [ ! -d /opt/nginx ]; then
     mkdir -p /opt/nginx
 fi
@@ -26,14 +33,14 @@ if [ -d /opt/nginx/nginx_upstream_check_module-master ]; then
     rm -rf /opt/nginx/nginx_upstream_check_module-master
 fi
 
-cp -rf  $RPM_BUILD_DIR/nginx_upstream_check_module-master /opt/nginx/
+cp -rf $RPM_BUILD_DIR/nginx_upstream_check_module-master /opt/nginx/
 
 groupadd nginx && useradd -d /var/cache/nginx -g nginx -s /sbin/nologin nginx
 
 
 %build
 cd $RPM_BUILD_DIR/nginx-1.14.2
-patch -p1 < /etc/nginx/nginx_upstream_check_module-master/check_1.14.0+.patch
+patch -p1 < /opt/nginx/nginx_upstream_check_module-master/check_1.14.0+.patch
 ./configure \
 --prefix=/etc/nginx \
 --sbin-path=/usr/sbin/nginx \
@@ -81,6 +88,20 @@ patch -p1 < /etc/nginx/nginx_upstream_check_module-master/check_1.14.0+.patch
 %install
 cd $RPM_BUILD_DIR/nginx-1.14.2
 make && make install 
+#%{__rm} -rf $RPM_BUILD_ROOT
+#%{__make}  install INSTALL_ROOT=$RPM_BUILD_ROOT
+#%{__mkdir} -p %{buildroot}/usr/share/nginx
+#%{__mkdir} -p %{buildroot}/usr/share/nginx/html
+#%{__mkdir} -p %{buildroot}/usr/lib/systemd/system
+#mkdir -p %{buildroot}/usr/sbin
+#%{__mkdir} -p %{buildroot}/var/cache
+##mkdir -p %{buildroot}/var/log
+#%{__mkdir} -p %{buildroot}/opt/nginx
+#%{__mkdir} -p %{buildroot}/var/log/nginx
+#mkdir -p %{buildroot}/etc/nginx
+#cp -rf /etc/nginx %{buildroot}/etc/
+#%{__install} -p -D -m 0755 /etc/nginx %{buildroot}/etc/nginx
+#%{__mkdir} -p %{buildroot}/etc/nginx/conf.d
 mkdir -p %{buildroot}/usr/share/nginx
 mkdir -p %{buildroot}/usr/share/nginx/html
 mkdir -p %{buildroot}/usr/lib/systemd/system
@@ -89,26 +110,27 @@ mkdir -p %{buildroot}/var/cache
 mkdir -p %{buildroot}/var/log
 mkdir -p %{buildroot}/opt/nginx
 mkdir -p %{buildroot}/var/log/nginx
-#mkdir -p %{buildroot}/etc/nginx
-#cp -rf /etc/nginx %{buildroot}/etc/
-%{__install} -p -D -m 0755 /etc/nginx %{buildroot}/etc/nginx
+mkdir -p %{buildroot}/etc/nginx
 mkdir -p %{buildroot}/etc/nginx/conf.d
+
+cp -rf /etc/nginx/* %{buildroot}/etc/nginx/
 cp -rf $RPM_BUILD_DIR/nginx_config/html/* %{buildroot}/usr/share/nginx/html/
-/bin/cp -rf $RPM_BUILD_DIR/nginx_config/conf/nginx.conf %{buildroot}/etc/nginx/conf/
-/bin/cp -rf $RPM_BUILD_DIR/nginx_config/conf/default.conf %{buildroot}/etc/nginx/conf.d/
+cp -rf $RPM_BUILD_DIR/nginx_config/conf/nginx.conf %{buildroot}/etc/nginx/
+cp -rf $RPM_BUILD_DIR/nginx_config/conf/default.conf %{buildroot}/etc/nginx/conf.d/
 #cp -rf /etc/sysconfig/nginx %{buildroot}/etc/sysconfig/nginx
 #cp -rf /etc/sysconfig/nginx-debug %{buildroot}/etc/sysconfig/nginx-debug
 cp -rf $RPM_BUILD_DIR/nginx_config/system/nginx-debug.service %{buildroot}/usr/lib/systemd/system/
 cp -rf $RPM_BUILD_DIR/nginx_config/system/nginx.service %{buildroot}/usr/lib/systemd/system/
+cp -rf /opt/nginx/nginx_upstream_check_module-master %{buildroot}/opt/nginx/
 #cp -rf /usr/lib64/nginx %{buildroot}/usr/lib64/nginx
 #cp -rf /usr/libexec/initscripts/legacy-actions/nginx %{buildroot}/usr/libexec/initscripts/legacy-actions/nginx
 #cp -rf /usr/sbin/nginx %{buildroot}/usr/sbin/
 #cp -rf /usr/share/man/man8/nginx.8.gz %{buildroot}/usr/share/man/man8/nginx.8.gz
 #cp -rf /var/cache/nginx %{buildroot}/var/cache/
 #cp -rf /opt/nginx/nginx_upstream_check_module-master %{buildroot}/opt/nginx/
-%{__install} -p -D -m 0755 /usr/sbin/nginx %{buildroot}/usr/sbin/nginx
-%{__install} -p -D -m 0755 /var/cache/nginx %{buildroot}/var/cache/nginx
-%{__install} -p -D -m 0755 /opt/nginx/nginx_upstream_check_module-master %{buildroot}/opt/nginx/nginx_upstream_check_module-master
+#%{__install} -p -D -m 0755 /usr/sbin/nginx %{buildroot}/usr/sbin/nginx
+#%{__install} -p -D -m 0755 /var/cache/nginx %{buildroot}/var/cache/nginx
+#%{__install} -p -D -m 0755 /opt/nginx/nginx_upstream_check_module-master %{buildroot}/opt/nginx/nginx_upstream_check_module-master
 
 %post
 id nginx &>/dev/null
@@ -141,7 +163,7 @@ fi
 /usr/share/nginx/html/50x.html
 /usr/share/nginx/html/index.html
 /var/log/nginx
-/var/cache/nginx
+/var/cache
 /opt/nginx/nginx_upstream_check_module-master
 %config /etc/nginx/nginx.conf
 %config /etc/nginx/conf.d/default.conf
