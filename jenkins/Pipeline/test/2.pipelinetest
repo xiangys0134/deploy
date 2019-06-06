@@ -1,0 +1,65 @@
+pipeline {
+    agent {
+        node{
+            label 'xunce-oms'
+        }
+    }
+
+    stages {
+        stage('清除工作空间') {
+            steps {
+                script{
+                    deleteDir()
+                }
+            }
+        }
+
+
+        stage('下载git仓库'){
+            environment{
+                git_credentials = '8440ed49-e304-48db-ac1b-26fac23dba42'
+                url = 'http://192.168.0.38/ops/build.git'
+                project = 'deploy'
+                release_tag = 'v1.0.1'
+            }
+            options {
+                timeout(time:1,unit:'HOURS')
+            }
+            steps{
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: release_tag]],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: project], [$class: 'CloneOption', noTags: true, reference: '', shallow: true, timeout: 10]],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[credentialsId: git_credentials, url: url]]])
+                    withCredentials([[$class: 'UsernamePasswordMultiBinding',
+                        credentialsId: git_credentials,
+                        usernameVariable: 'GIT_USERNAME',
+                        passwordVariable: 'GIT_PASSWORD']]) {
+                            dir("${env.WORKSPACE}/${env.project}") {
+                              sh '''
+                              function Add_tag() {
+                                  tag_num=$(git tag -l ${release_tag}|wc -l)
+                                  git config user.name 'ops'
+                                  git config user.email 'ops@xuncetech.com'
+                                  if [ ${tag_num} -eq 1 ]; then
+                                      echo "release tag ${release_tag} 存在,正在删除..."
+                                      git tag -d  ${release_tag}
+                                      #git push origin --delete ${release_tag}
+                                  fi
+                                  echo ${release_tag} >version
+                                  git add .
+                                  git commit -m ${release_tag}
+                                  git tag -a ${release_tag} -m "jenkins 自动打包tag ${release_tag}"
+                                  git push http://${GIT_USERNAME}:${GIT_PASSWORD}@${url#http://} --tags -f
+                              }
+                              Add_tag
+                              '''
+                            }
+                        }
+            }
+
+        }
+    }
+}

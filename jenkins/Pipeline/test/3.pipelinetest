@@ -1,0 +1,82 @@
+pipeline {
+    //选择指定node节点,需要安装SSH Agent插件
+    agent {
+        node{
+        label 'xunce-oms'
+        }
+    }
+
+    //清除工作空间
+    stages {
+        stage('清除工作空间') {
+            steps {
+                script{
+                    deleteDir()
+                }
+            }
+        }
+
+
+        //下载git仓库并生成文件提交到远端仓库
+        stage('下载git仓库1') {
+            environment {
+                git_credentials = '4e553e4b-ef0b-4f5f-9976-12cdd577a2a3'
+                url = 'git@192.168.0.38:ops/build.git'
+                release_tag = 'v1.0.1'
+                project = 'deploy01'
+
+            }
+
+            steps {
+              checkout([
+                $class: 'GitSCM', branches: [[name: '100.100.2/0-yw']],
+                doGenerateSubmoduleConfigurations: false,
+                extensions: [[$class: 'CloneOption', noTags: false, reference: '', shallow: true], [$class: 'RelativeTargetDirectory', relativeTargetDir: project]],
+                submoduleCfg: [],
+                userRemoteConfigs: [[credentialsId: git_credentials, url: url]]
+                ])
+                sshagent(credentials: ['4e553e4b-ef0b-4f5f-9976-12cdd577a2a3'],ignoreMissing: true) {
+                  dir("${env.WORKSPACE}/${env.project}"){
+                    sh '''
+                    ls
+                    '''
+                  }
+                }
+
+
+
+            }
+        }
+
+        stage('下载git仓库2') {
+            environment {
+                git_credentials = '4e553e4b-ef0b-4f5f-9976-12cdd577a2a3'
+                url = 'git@192.168.0.38:ops/build.git'
+                release_tag = 'v1.0.2'
+                project = 'project_dir'
+
+            }
+
+            steps {
+              checkout([
+                $class: 'GitSCM', branches: [[name: '*/master']],
+                doGenerateSubmoduleConfigurations: false,
+                extensions: [[$class: 'CloneOption', noTags: false, reference: '', shallow: true], [$class: 'RelativeTargetDirectory', relativeTargetDir: project]],
+                submoduleCfg: [],
+                userRemoteConfigs: [[credentialsId: git_credentials, url: url]]
+                ])
+                sshagent(credentials: ['4e553e4b-ef0b-4f5f-9976-12cdd577a2a3'],ignoreMissing: true) {
+                  dir("${env.WORKSPACE}/${env.project}"){
+                    sh '''
+                    project_name=deploy01
+                    /bin/rsync  -vzrtopgl   --delete  --exclude .git  --exclude "LICENSE"  ${WORKSPACE}/${project_name}/ ${WORKSPACE}/${project}/
+                    '''
+                  }
+                }
+
+
+
+            }
+        }
+    }
+}
