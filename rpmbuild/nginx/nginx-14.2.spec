@@ -6,10 +6,10 @@ Summary:	GUN nginx-1.14.2
 Group:		Application/WebServer
 License:	GPL
 URL:		http://www.github.com/xiangys0134
-Source0:	nginx-1.14.2.tar.gz
+Source0:	master.zip
 Source1:	nginx_config.tar.gz
 #Source2:	nginx_upstream_check_module-master.tar.gz
-Source2:	master.zip
+Source2:	nginx-1.14.2.tar.gz
 
 #BuildRequires:	gcc>=4.4.7,gcc-c++>=4.4.7,pcre-devel>=8.12,openssl-devel>=1.0.1e,patch>=2.7.1,unzip>=2.11,make>=3.82
 BuildRequires:	gcc,gcc-c++,pcre-devel,openssl-devel,patch,unzip,make
@@ -19,11 +19,11 @@ BuildRequires:	gcc,gcc-c++,pcre-devel,openssl-devel,patch,unzip,make
 nginx-1.14.2
 
 %prep
-#rm -rf $RPM_BUILD_DIR/nginx-1.14.2
-#rm -rf $RPM_BUILD_DIR/nginx_config
-#rm -rf $RPM_BUILD_DIR/nginx_upstream_check_module-master
-%setup -T -b 0 -n nginx-14.2 -b 1 -n nginx_config -b 2 -n nginx_upstream_check_module-master
-#%setup -b 1 -b 2 
+rm -rf $RPM_BUILD_DIR/nginx_upstream_check_module-master 
+rm -rf $RPM_BUILD_DIR/nginx_config
+rm -rf $RPM_BUILD_DIR/nginx-14.2
+%setup -T -b 0 -n nginx_upstream_check_module-master -b 1 -n nginx_config -b 2 -n nginx-1.14.2
+
 cd $RPM_BUILD_DIR
 if [ ! -d /opt/nginx ]; then
     mkdir -p /opt/nginx
@@ -35,28 +35,20 @@ fi
 
 cp -rf $RPM_BUILD_DIR/nginx_upstream_check_module-master /opt/nginx/
 
-groupadd nginx && useradd -d /var/cache/nginx -g nginx -s /sbin/nologin nginx
+user_sum=`grep -w "^nginx" /etc/passwd|wc -l`
+if [ ${user_sum} -eq 0 ]; then 
+    groupadd nginx && useradd -d /var/cache/nginx -g nginx -s /sbin/nologin nginx
+fi
 
 
 %build
 cd $RPM_BUILD_DIR/nginx-1.14.2
 patch -p1 < /opt/nginx/nginx_upstream_check_module-master/check_1.14.0+.patch
 ./configure \
---prefix=/etc/nginx \
---sbin-path=/usr/sbin/nginx \
---modules-path=/usr/lib64/nginx/modules \
---conf-path=/etc/nginx/nginx.conf \
---error-log-path=/var/log/nginx/error.log \
---http-log-path=/var/log/nginx/access.log \
---pid-path=/var/run/nginx.pid \
---lock-path=/var/run/nginx.lock \
---http-client-body-temp-path=/var/cache/nginx/client_temp \
---http-proxy-temp-path=/var/cache/nginx/proxy_temp \
---http-fastcgi-temp-path=/var/cache/nginx/fastcgi_temp \
---http-uwsgi-temp-path=/var/cache/nginx/uwsgi_temp \
---http-scgi-temp-path=/var/cache/nginx/scgi_temp \
+--prefix=/usr/local/nginx \
 --user=nginx \
 --group=nginx \
+--with-pcre \
 --with-compat \
 --with-file-aio \
 --with-threads \
@@ -84,53 +76,16 @@ patch -p1 < /opt/nginx/nginx_upstream_check_module-master/check_1.14.0+.patch
 --with-cc-opt='-O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector-strong --param=ssp-buffer-size=4 -grecord-gcc-switches -m64 -mtune=generic -fPIC' \
 --add-module=/opt/nginx/nginx_upstream_check_module-master \
 --with-ld-opt='-Wl,-z,relro -Wl,-z,now -pie'
+make
 
 %install
-cd $RPM_BUILD_DIR/nginx-1.14.2
-make && make install 
+#cd $RPM_BUILD_DIR/nginx-1.14.2
+#make && make install 
 #%{__rm} -rf $RPM_BUILD_ROOT
-#%{__make}  install INSTALL_ROOT=$RPM_BUILD_ROOT
-#%{__mkdir} -p %{buildroot}/usr/share/nginx
-#%{__mkdir} -p %{buildroot}/usr/share/nginx/html
-#%{__mkdir} -p %{buildroot}/usr/lib/systemd/system
-#mkdir -p %{buildroot}/usr/sbin
-#%{__mkdir} -p %{buildroot}/var/cache
-##mkdir -p %{buildroot}/var/log
-#%{__mkdir} -p %{buildroot}/opt/nginx
-#%{__mkdir} -p %{buildroot}/var/log/nginx
-#mkdir -p %{buildroot}/etc/nginx
-#cp -rf /etc/nginx %{buildroot}/etc/
-#%{__install} -p -D -m 0755 /etc/nginx %{buildroot}/etc/nginx
-#%{__mkdir} -p %{buildroot}/etc/nginx/conf.d
-mkdir -p %{buildroot}/usr/share/nginx
-mkdir -p %{buildroot}/usr/share/nginx/html
-mkdir -p %{buildroot}/usr/lib/systemd/system
-mkdir -p %{buildroot}/usr/sbin
-mkdir -p %{buildroot}/var/cache
-mkdir -p %{buildroot}/var/log
-mkdir -p %{buildroot}/opt/nginx
-mkdir -p %{buildroot}/var/log/nginx
-mkdir -p %{buildroot}/etc/nginx
-mkdir -p %{buildroot}/etc/nginx/conf.d
+#%{__make}  install DESTDIR=%{buildroot}
+rm -rf %{buildroot}
+make install DESTDIR=%{buildroot}
 
-cp -rf /etc/nginx/* %{buildroot}/etc/nginx/
-cp -rf $RPM_BUILD_DIR/nginx_config/html/* %{buildroot}/usr/share/nginx/html/
-cp -rf $RPM_BUILD_DIR/nginx_config/conf/nginx.conf %{buildroot}/etc/nginx/
-cp -rf $RPM_BUILD_DIR/nginx_config/conf/default.conf %{buildroot}/etc/nginx/conf.d/
-#cp -rf /etc/sysconfig/nginx %{buildroot}/etc/sysconfig/nginx
-#cp -rf /etc/sysconfig/nginx-debug %{buildroot}/etc/sysconfig/nginx-debug
-cp -rf $RPM_BUILD_DIR/nginx_config/system/nginx-debug.service %{buildroot}/usr/lib/systemd/system/
-cp -rf $RPM_BUILD_DIR/nginx_config/system/nginx.service %{buildroot}/usr/lib/systemd/system/
-cp -rf /opt/nginx/nginx_upstream_check_module-master %{buildroot}/opt/nginx/
-#cp -rf /usr/lib64/nginx %{buildroot}/usr/lib64/nginx
-#cp -rf /usr/libexec/initscripts/legacy-actions/nginx %{buildroot}/usr/libexec/initscripts/legacy-actions/nginx
-#cp -rf /usr/sbin/nginx %{buildroot}/usr/sbin/
-#cp -rf /usr/share/man/man8/nginx.8.gz %{buildroot}/usr/share/man/man8/nginx.8.gz
-#cp -rf /var/cache/nginx %{buildroot}/var/cache/
-#cp -rf /opt/nginx/nginx_upstream_check_module-master %{buildroot}/opt/nginx/
-#%{__install} -p -D -m 0755 /usr/sbin/nginx %{buildroot}/usr/sbin/nginx
-#%{__install} -p -D -m 0755 /var/cache/nginx %{buildroot}/var/cache/nginx
-#%{__install} -p -D -m 0755 /opt/nginx/nginx_upstream_check_module-master %{buildroot}/opt/nginx/nginx_upstream_check_module-master
 
 %post
 id nginx &>/dev/null
@@ -143,30 +98,11 @@ fi
 
 %files
 %doc
-/etc/nginx
-/etc/nginx/conf.d
-#/etc/nginx/conf.d
-#/etc/nginx/conf.d/default.conf
-#/etc/nginx/fastcgi_params
-#/etc/nginx/koi-utf
-#/etc/nginx/koi-win
-#/etc/nginx/mime.types
-#/etc/nginx/modules
-%config /etc/nginx/nginx.conf
-#/etc/nginx/scgi_params
-#/etc/nginx/uwsgi_params
-#/etc/nginx/win-utf
-/usr/lib/systemd/system/nginx-debug.service
-/usr/lib/systemd/system/nginx.service
-/usr/share/nginx
-/usr/share/nginx/html
-/usr/share/nginx/html/50x.html
-/usr/share/nginx/html/index.html
-/var/log/nginx
-/var/cache
-/opt/nginx/nginx_upstream_check_module-master
-%config /etc/nginx/nginx.conf
-%config /etc/nginx/conf.d/default.conf
+/usr/local/nginx
+/usr/local/nginx/*
+#%attr(0755,root,root) /etc/rc.d/init.d/nginx
+%config(noreplace) /usr/local/nginx/conf/nginx.conf
+%config(noreplace) /usr/local/nginx/conf/fastcgi_params
 
 %changelog
 
