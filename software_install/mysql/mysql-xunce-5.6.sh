@@ -267,7 +267,7 @@ EOF
   #添加mysql 服务开机自启动
   /bin/systemctl daemon-reload
   /bin/systemctl enable mysqld.service
-  /bin/systemctl start mysqld.service
+  #/bin/systemctl start mysqld.service
   firewall-cmd --zone=public --add-service=mysql --permanent
   firewall-cmd --reload
 
