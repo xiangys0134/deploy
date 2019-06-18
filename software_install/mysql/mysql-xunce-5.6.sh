@@ -1,7 +1,7 @@
 #!/bin/bash
 #MySQL5.6一键安装
 #Author: yousong.xiang
-#Date:  2019.8.18
+#Date:  2019.6.18
 #Version: v1.0.1
 
 
@@ -83,7 +83,7 @@ function mysql56_install() {
 # Enable to use MySQL 5.6
 [mysql56-community]
 name=MySQL 5.6 Community Server
-baseurl=http://mirrors.xuncetech.com/yum/mysql-5.6-community/el/${sys_ver}/\$basearch/
+baseurl=http://mirrors.xuncetech.com/mysql-repo/yum/mysql-5.6-community/el/${sys_ver}/\$basearch/
 enabled=1
 gpgcheck=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-mysql
