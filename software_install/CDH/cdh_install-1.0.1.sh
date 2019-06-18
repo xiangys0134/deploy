@@ -169,7 +169,7 @@ function CDH_Cluster_install() {
     wget ${manifest_json} &>/dev/null && echo "download manifest.json seccess" || echo "download manifest.json failed"
     wget ${parcel_sha256} &>/dev/null && echo "download parcel_sha256 seccess" || echo "download parcel_sha256 failed"
     wget ${parcel} &>/dev/null && echo "download parcel seccess" || echo "download parcel failed"
-    find ./ -name "CDH-${VERSION}-*-el7.parcel.sha256"|cut -d "/" -f 2 |head 1|while read file
+    find ./ -name "CDH-${VERSION}-*-el7.parcel.sha256"|cut -d "/" -f 2 |head -1|while read file
     do
         pkg=${file%256}
         echo "mv ${file} ${pkg}"
@@ -183,7 +183,7 @@ function mysql_connector_java() {
     [ ! -d /usr/share/java ] && mkdir /usr/share/java -p
     mkdir /tmp/tmp_mysql_connector_java_pkg -p && cd /tmp/tmp_mysql_connector_java_pkg
     wget ${mysql_connector_java_pkg} &>/dev/null && echo "download mysql_connector_java seccess" || echo "download mysql_connector_java failed"
-    find ./ -name "*.tar.gz" |cut -d "/" -f 2|head 1|while read file
+    find ./ -name "*.tar.gz" |cut -d "/" -f 2|head -1|while read file
     do
         tar -zxf ${file}
         echo "/bin/cp -rf mysql-connector-java*/mysql-connector-java-[0-9]*.[0-9]*.[0-9]*-bin.jar /usr/share/java/mysql-connector-java.jar"
