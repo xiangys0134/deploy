@@ -126,7 +126,7 @@ function Cloudera_master_install() {
 
 
     if [ -f /etc/cloudera-scm-agent/config.ini ]; then
-        sed -i '/^server_host=/c\server_host="${master_hostname}"' /etc/cloudera-scm-agent/config.ini
+        sed -i "/^server_host=/c\server_host=${master_hostname}" /etc/cloudera-scm-agent/config.ini
     else
         echo "cloudera-scm-agent install error!"
     fi
