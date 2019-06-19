@@ -113,7 +113,7 @@ EOF
       chown -R mysql.mysql ${mysql_data}
   else
       echo "mysql data 目录存在，无需创建." |tee -a ${log}
-      #chown -R mysql.mysql ${mysql_data}
+      chown -R mysql.mysql ${mysql_data}
   fi
 
 
@@ -250,7 +250,7 @@ EOF
       if [ $? -eq 0 ]; then
           echo  "mysql数据库初始化成功" |tee -a ${log}
       else
-          echo 'mysql数据库初始化 fail' |tee -a ${log}
+          echo 'mysql数据库初始化失败' |tee -a ${log}
       fi
   else
       echo "mysql数据库已初始化，无需再次初始化." |tee -a ${log}
