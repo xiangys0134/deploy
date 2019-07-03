@@ -151,9 +151,10 @@ function Cloudera_master_install() {
     tar -zxf /tmp/pkg/${cm_master_tar_gz}
     yum localinstall /tmp/pkg/${cm_master_tar_gz%%.tar*}/*.rpm -y
 
-    #echo "export JAVA_HOME=/usr/java/jdk${jdk_num}_${jdk_version}-cloudera" >> /etc/profile && \
-    #echo "export PATH=\$PATH:\$JAVA_HOME/bin" >> /etc/profile && \
-    #source /etc/profile
+    echo "export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.212.b04-0.el7_6.x86_64" >> /etc/profile && \
+    echo "export PATH=\$JAVA_HOME/bin:\$PATH" >> /etc/profile && \
+    echo "export CLASSPATH=.:\$JAVA_HOME/lib/dt.jar:\$JAVA_HOME/lib/tools.jar" >> /etc/profile && \
+    source /etc/profile
 
 
     if [ -f /etc/cloudera-scm-agent/config.ini ]; then
@@ -181,6 +182,12 @@ function Cloudera_slave_install() {
     tar -zxf /tmp/pkg/${cm_slave_tar_gz}
     yum localinstall /tmp/pkg/${cm_slave_tar_gz%%.tar*}/*.rpm -y
  
+
+    echo "export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.212.b04-0.el7_6.x86_64" >> /etc/profile && \
+    echo "export PATH=\$JAVA_HOME/bin:\$PATH" >> /etc/profile && \
+    echo "export CLASSPATH=.:\$JAVA_HOME/lib/dt.jar:\$JAVA_HOME/lib/tools.jar" >> /etc/profile && \
+    source /etc/profile
+
 
     if [ -f /etc/cloudera-scm-agent/config.ini ]; then
         sed -i "/^server_host=/c\server_host=${master_hostname}" /etc/cloudera-scm-agent/config.ini
