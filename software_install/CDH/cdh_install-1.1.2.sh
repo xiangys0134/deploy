@@ -24,7 +24,7 @@ cmd=`pwd`
 check_file=/var/log/cdh_install.log
 openjdk_zip=https://soft.g6p.cn/deploy/rpm/x86_64/CDH-6.2.0/online/openjdk1.8.tar.gz
 manifest_json=https://soft.g6p.cn/deploy/rpm/x86_64/CDH-6.2.0/Parcels/manifest.json
-parcel_sha256=https://soft.g6p.cn/deploy/rpm/x86_64/CDH-6.2.0/Parcels/CDH-6.2.0-1.cdh6.2.0.p0.967373-el7.parcel.sha256
+parcel_sha256=https://soft.g6p.cn/deploy/rpm/x86_64/CDH-6.2.0/Parcels/CDH-6.2.0-1.cdh6.2.0.p0.967373-el7.parcel.sha
 parcel=https://soft.g6p.cn/deploy/rpm/x86_64/CDH-6.2.0/Parcels/CDH-6.2.0-1.cdh6.2.0.p0.967373-el7.parcel
 cm_master_pkg=https://soft.g6p.cn/deploy/rpm/x86_64/CDH-6.2.0/online/cloudera-master-6.2.0.tar.gz
 cm_slave_pkg=https://soft.g6p.cn/deploy/rpm/x86_64/CDH-6.2.0/online/cloudera-slave-6.2.0.tar.gz
@@ -208,6 +208,8 @@ function CDH_Cluster_install() {
     if [ ! -f ${parcel##*/} ]; then
         wget ${parcel} &>/dev/null && echo "download parcel seccess" || echo "download parcel failed"
     fi
+
+    #手动重命名Parcels文件，以下参数失效
     find ./ -name "CDH-*-el7.parcel.sha256"|cut -d "/" -f 2 |head -1|while read file
     do
         pkg=${file%256}
