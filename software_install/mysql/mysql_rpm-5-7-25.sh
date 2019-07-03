@@ -1,13 +1,13 @@
 #!/bin/bash
-#MySQL5.6一键安装
-#Author: yousong.xiang
-#Date:  2018.11.26
-#Version: v1.0.2
+# MySQL5.7一键安装
+# Author: yousong.xiang
+# Date:  2018.11.26
+# Version: v1.0.3
 
 
 [ -f /etc/profile ] && . /etc/profile
 [ $# -ne 1 ] && {
-                    echo -e "\033[31m传递参数有误\033[0m"
+                    echo -e "\033[31;1m 传递参数有误\033[0m"
                     exit 9
                 }
 
@@ -46,25 +46,25 @@ function epel_install(){
     if [ `check_rpm remi-release` == '0' ]; then
         rpm -ivh http://rpms.famillecollet.com/enterprise/remi-release-${sys_ver}.rpm  &>/dev/null
         if [ $? -eq 0 ]; then
-            echo -e "\033[32;1mepel-release install seccuess\033[0m" |tee -a ${log}
+            echo -e "\033[32;1m epel-release install seccuess\033[0m"
             yum clean all            
         else
-            echo -e "\033[31;1mepel-release install fail\033[0m" |tee -a ${log}
+            echo -e "\033[31;1m epel-release install fail\033[0m"
         fi
     fi   
 
     if [ `check_rpm wget` == '0' ]; then
-        yum install -y wget
+        yum install wget -y
         if [ `check_rpm wget` != '0' ]; then
-            echo -e "\033[32;1mwget install seccuess\033[0m" |tee -a ${log}
+            echo -e "\033[32;1m wget install seccuess\033[0m"
         else
-            echo -e "\033[31;1mwget install fail\033[0m" |tee -a ${log}
+            echo -e "\033[31;1m wget install fail\033[0m"
         fi
     fi
 
 }
 
-function mysql56_install() {
+function mysql57_install() {
     mysql_data=$1
     mysql_conf=/etc/my.cnf
     mysql_repo=/etc/yum.repos.d/mysql-community.repo
@@ -101,14 +101,13 @@ EOF
   yum clean all;rm -rf /var/cache/yum 
 
   if [ `check_rpm mysql-server` == '0' ]; then
-      #yum install -y mysql-community-client mysql-community-server mysql-community-devel mysql-community-test  >/dev/null >&1
       yum install -y mysql-community-client mysql-community-server mysql-community-devel mysql-community-test 
   fi
 
   if [ `check_rpm mysql-server` != '0' ]; then
-      echo -e "\033[32;1mmysql install seccuess\033[0m" |tee -a ${log}
+      echo -e "\033[32;1m mysql install seccuess\033[0m"
   else:
-      echo -e "\033[31;1mmysql install fail\033[0m" |tee -a ${log}
+      echo -e "\033[31;1m mysql install failed\033[0m"
   fi
 
   #创建mysql数据库目录
@@ -116,11 +115,9 @@ EOF
       mkdir -p ${mysql_data}/data
       mkdir -p ${mysql_data}/log
       mkdir -p ${mysql_data}/tmp
-      #mkdir -p ${mysql_data}/share/mysql
       chown -R mysql.mysql ${mysql_data}
   else
       echo "mysql data 目录存在，无需创建." |tee -a ${log}
-      #chown -R mysql.mysql ${mysql_data}
   fi
 
 
@@ -252,16 +249,15 @@ EOF
   #初始化mysql数据库
   if [ ! -d ${mysql_data}/data/mysql ]; then
       #/usr/bin/mysql_install_db --defaults-extra-file=${mysql_conf} --user=mysql --force >/dev/null >&1
-      echo ${mysql_conf}
-      #/usr/bin/mysql_install_db --defaults-extra-file=${mysql_conf} --user=mysql --force
+      #echo ${mysql_conf}
       /usr/sbin/mysqld --defaults-file=/etc/my.cnf --initialize --user=mysql
       if [ $? -eq 0 ]; then
-          echo  "mysql数据库初始化成功" |tee -a ${log}
+          echo  "mysql数据库初始化成功"
       else
-          echo 'mysql数据库初始化 fail' |tee -a ${log}
+          echo "mysql数据库初始化 failed"
       fi
   else
-      echo "mysql数据库已初始化，无需再次初始化." |tee -a ${log}
+      echo "mysql数据库已初始化，无需再次初始化."
   fi
 
   if [ -f /usr/my.cnf ]; then
@@ -275,7 +271,7 @@ EOF
   #添加mysql 服务开机自启动
   /bin/systemctl daemon-reload
   /bin/systemctl enable mysqld.service
-  /bin/systemctl start mysqld.service
+  #/bin/systemctl start mysqld.service
   firewall-cmd --zone=public --add-service=mysql --permanent
   firewall-cmd --reload
 
@@ -290,7 +286,7 @@ case $1 in
 db)
     epel_install
     mysql_dir=/data/mysql
-    mysql56_install ${mysql_dir}
+    mysql57_install ${mysql_dir}
     ;;
 *)
     echo "USAG: $0 'mysql'" 
