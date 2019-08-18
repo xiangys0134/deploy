@@ -10,7 +10,7 @@ cmd=`dirname $0`
 CHROOOT_LIST_DIR=/etc/vsftpd/chroot_list
 CONFIG_DIR=/etc/vsftpd/vuser_conf
 #PASV_ADDR默认选择内网IP，如果是NAT公网/私网双网卡则配置成公网IP
-PASV_ADDR=172.17.238.10
+PASV_ADDR=172.16.237.10
 PASV_MIN_PORT=30000
 PASV_MAX_PORT=30999
 VSFTPD_USER_TXT=/etc/vsftpd/ftpuser.txtx
