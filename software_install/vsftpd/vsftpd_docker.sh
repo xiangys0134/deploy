@@ -144,20 +144,20 @@ pasv_min_port=${PASV_MIN_PORT}
 pasv_max_port=${PASV_MAX_PORT}
 EOF
 
-    echo "vsftp" > /var/log/vsftpd.lock
+    #echo "vsftp" > /var/log/vsftpd.lock
 
-    systemctl start vsftpd
-    if [ $? -ne 0 ]; then
-        echo -e "\033[31;1mVSFTPD启动失败\033[0m"
-        echo -e "\033[32;1mVSFTPD用户名：${user}\033[0m" 
-        echo -e "\033[32;1mVSFTPD密码：${pass}\033[0m"
-        exit 9
-    else
-        systemctl enable vsftpd &>/dev/null
-        echo -e "\033[32;1mVSFTPD用户名：${user}\033[0m" 
-        echo -e "\033[32;1mVSFTPD密码：${pass}\033[0m" 
-    fi
-
+    #systemctl start vsftpd
+    #if [ $? -ne 0 ]; then
+    #    echo -e "\033[31;1mVSFTPD启动失败\033[0m"
+    #    echo -e "\033[32;1mVSFTPD用户名：${user}\033[0m" 
+    #   echo -e "\033[32;1mVSFTPD密码：${pass}\033[0m"
+    #    exit 9
+    #else
+    #    systemctl enable vsftpd &>/dev/null
+    #    echo -e "\033[32;1mVSFTPD用户名：${user}\033[0m" 
+    #    echo -e "\033[32;1mVSFTPD密码：${pass}\033[0m" 
+    #fi
+    systemctl disable vsftpd
 }
 
 
@@ -174,4 +174,4 @@ function firewall_cmd() {
 check_ping
 vsftpd_install
 vsftpd_config
-firewall_cmd
+#firewall_cmd
