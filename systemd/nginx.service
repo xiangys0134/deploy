@@ -1,0 +1,16 @@
+[Unit]
+Description=nginx
+After=network.target
+
+[Service]
+Type=forking
+ExecStartPre=/usr/bin/rm -f /usr/local/nginx/nginx.pid
+ExecStart=/usr/bin/bash -c '/usr/local/nginx/sbin/nginx'
+ExecReload=/bin/kill -s HUP $MAINPID
+KillSignal=SIGQUIT
+TimeoutStopSec=5
+KillMode=process
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
