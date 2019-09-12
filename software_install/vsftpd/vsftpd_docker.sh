@@ -12,7 +12,7 @@ CONFIG_DIR=/etc/vsftpd/vuser_conf
 #PASV_ADDR默认选择内网IP，如果是NAT公网/私网双网卡则配置成公网IP
 PASV_ADDR=172.16.237.10
 PASV_MIN_PORT=30000
-PASV_MAX_PORT=30999
+PASV_MAX_PORT=30099
 VSFTPD_USER_TXT=/etc/vsftpd/ftpuser.txtx
 VSFTPD_USER_DB=/etc/vsftpd/vftpuser.db
 
