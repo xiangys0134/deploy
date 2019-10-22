@@ -106,16 +106,10 @@ EOF
   fi
 
   #创建mysql数据库目录
-  if [ ! -d ${mysql_data} ]; then
-      mkdir -p ${mysql_data}/data
-      mkdir -p ${mysql_data}/log
-      mkdir -p ${mysql_data}/tmp
-      chown -R mysql.mysql ${mysql_data}
-  else
-      echo "mysql data 目录存在，无需创建." |tee -a ${log}
-      chown -R mysql.mysql ${mysql_data}
-  fi
-
+  [ ! -d ${mysql_data}/data ] && mkdir -p ${mysql_data}/data
+  [ ! -d ${mysql_data}/log ] && mkdir -p ${mysql_data}/log
+  [ ! -d ${mysql_data}/tmp ] && mkdir -p ${mysql_data}/tmp
+  chown -R mysql.mysql ${mysql_data}
 
   mem_total=`free -m|grep "^Mem"|awk '{print $2}'`
 
