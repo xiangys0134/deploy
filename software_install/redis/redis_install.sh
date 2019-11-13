@@ -1,21 +1,10 @@
 #!/bin/bash
-#Redis4.0一键安装
-#Author: yousong.xiang
-#Date:  2018.11.26
-#Version: v1.0.1
+# Redis一键安装
+# Author: yousong.xiang
+# Date:  2018.11.26
+# Version: v1.0.1
 
 datetime=`date '+%H%M%S'`
-log=upgrade${datetime}.log
-
-if [ ! -f ${log} ]; then
-    touch ${log}
-fi
-
-[ -f /etc/profile ] && . /etc/profile
-[ $# -ne 1 ] && {
-                    echo -e "\033[31m传递参数有误\033[0m" |tee -a ${log}
-                    exit 9
-                }
 
 cmd=`pwd`
 
@@ -80,7 +69,7 @@ daemonize yes
 pidfile "/var/run/redis-${redis_port}.pid"
 
 #默认情况下，redis 在 server 上所有有效的网络接口上监听客户端连接。如果只想让它在一个或多个网络接口上监听，那你就绑定一个IP或者多个IP。多个ip空格分隔即可。
-#bind 127.0.0.1  ${redis_ip}
+bind ${redis_ip}
 
 # 指定该redis server监听的端口号。默认是6379，如果指定0则不监听。
 port ${redis_port}
@@ -272,13 +261,13 @@ if [ -z "\$SERVICE_NAME" ]; then
 fi
 
 # Get the proper config file based on service name
-CONFIG_FILE="${redis_data}/$SERVICE_NAME.conf"
+CONFIG_FILE="${redis_data}/conf/\$SERVICE_NAME.conf"
 
 # Use awk to retrieve host, port from config file
-HOST=\`awk '/^[[:blank:]]*bind/ { print $2 }' $CONFIG_FILE | tail -n1\`
-PORT=\`awk '/^[[:blank:]]*port/ { print $2 }' $CONFIG_FILE | tail -n1\`
-PASS=\`awk '/^[[:blank:]]*requirepass/ { print $2 }' $CONFIG_FILE | tail -n1\`
-SOCK=\`awk '/^[[:blank:]]*unixsocket\s/ { print $2 }' $CONFIG_FILE | tail -n1\`
+HOST=\`awk '/^[[:blank:]]*bind/ { print \$2 }' \$CONFIG_FILE | tail -n1\`
+PORT=\`awk '/^[[:blank:]]*port/ { print \$2 }' \$CONFIG_FILE | tail -n1\`
+PASS=\`awk '/^[[:blank:]]*requirepass/ { print \$2 }' \$CONFIG_FILE | tail -n1\`
+SOCK=\`awk '/^[[:blank:]]*unixsocket\s/ { print \$2 }' \$CONFIG_FILE | tail -n1\`
 
 # Just in case, use default host, port
 HOST=\${HOST:-127.0.0.1}
@@ -317,25 +306,23 @@ EOF
 function redis_install() {
     redis_data=$1
     #redis_port="6380 6381"
-    redis_port="6380"
+    redis_port="6380 6381 6382 6383 6384"
     redis_cf=${redis_data}/conf/redis-${redis_port}.conf
     #判断是否安装redis,如果没有安装则安装
-    if [ `check_rpm redis` == '0' ]; then
-        epel_install
-        yum --enablerepo=remi install -y redis >/dev/null >&1
-        if [ $? -eq 0 ]; then
-            echo -e "\033[32;1mredis install seccuess\033[0m" |tee -a ${log}
-        else
-            echo -e "\033[31;1mredis install fail\033[0m" |tee -a ${log}
-        fi   
+    epel_install
+    yum --enablerepo=remi install -y redis >/dev/null >&1
+    if [ $? -eq 0 ]; then
+        echo -e "\033[32;1m redis install seccuess\033[0m" |tee -a ${log}
+    else
+        echo -e "\033[31;1m redis install fail\033[0m" |tee -a ${log}
     fi
 
     if [ ! -d ${redis_data} ]; then
         mkdir -p ${redis_data}/conf
         mkdir -p ${redis_data}/data
         mkdir -p ${redis_data}/log
-        chown -R redis.redis ${redis_data}
     fi
+    chown -R redis.redis ${redis_data}
 
     #生成redis配置文件
     if [ ! -n "${redis_port}" ]; then
@@ -349,12 +336,6 @@ function redis_install() {
 }
 
 
-case $1 in
-  redis)
-    redis_dir=/data/redis
-    redis_install ${redis_dir}
-    ;;
-  *)
-    echo "USAGE: $0 redis"
-    ;;
-esac
+redis_dir=/data/redis
+redis_install ${redis_dir}
+
