@@ -3,6 +3,7 @@
 # Author yousong.xiang 250919938@qq.com
 # Date 2019.1.13
 # v1.0.1
+# 注意：这里先安装nginx后再执行该脚本，因为php-fpm运行用户为nginx
 
 [ -f /etc/profile ] && . /etc/profile
 
