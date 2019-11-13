@@ -72,7 +72,11 @@ start SetDateTime.exe
 echo 本机系统时间设置完成！
 
 rem echo Rem 安装NET-Framework3.5 .....................
-PowerShell Install-WindowsFeature NET-Framework-Core
+PowerShell Set-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU' -Name UseWUServer -Value 0
+PowerShell Restart-Service -Name wuauserv
+PowerShell Install-WindowsFeature Net-Framework-Core
+PowerShell Set-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU' -Name UseWUServer -Value 1
+PowerShell Restart-Service -Name wuauserv
 
 echo 安装 Telnet 客户端
 PowerShell Install-WindowsFeature Telnet-Client

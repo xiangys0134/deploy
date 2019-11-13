@@ -72,7 +72,7 @@ start SetDateTime.exe
 echo 本机系统时间设置完成！
 
 rem echo Rem 安装NET-Framework3.5 .....................
-PowerShell Install-WindowsFeature NET-Framework-Core
+PowerShell Install-WindowsFeature Net-Framework-Core
 
 echo 安装 Telnet 客户端
 PowerShell Install-WindowsFeature Telnet-Client
