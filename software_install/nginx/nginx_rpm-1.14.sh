@@ -23,7 +23,7 @@ remi_install() {
     setenforce 0
 
     if [ "`check_rpm redhat-lsb-core`" == "0" ]; then
-        yum install -y redhat-lsb-core >/dev/null 2>&1
+        yum install -y redhat-lsb-core wget >/dev/null 2>&1
         if [ "`check_rpm redhat-lsb-core`" != "0" ]; then
             echo "\033[31m安装redhat-lsb-core成功\033[0m"
         else
@@ -152,6 +152,7 @@ nginx_install() {
     sys_ver=`lsb_release -r |awk -F' ' '{print $2}'|awk -F'.' '{ print $1 }'`
     if [ "`check_rpm nginx-release`" == "0" ]; then
         #rpm -ivh http://nginx.org/packages/centos/${sys_ver}/noarch/RPMS/nginx-release-centos-${sys_ver}-0.el${sys_ver}.ngx.noarch.rpm >/dev/null >&1
+        wget https://soft.g6p.cn/deploy/rpm/x86_64/nginx-14.2-1.14.2-1.el7.centos.x86_64.rpm
         rpm -ivh http://soft.g6p.cn/deploy/source/nginx-release-centos-7-0.el7.ngx.noarch.rpm
         if [ "`check_rpm nginx-release`" != "0" ]; then
             echo "\033[32mnginx源安装成功\033[0m"
@@ -163,7 +164,8 @@ nginx_install() {
     fi
 
     if [ `check_rpm  nginx-1` == 0 ]; then
-        yum install -y nginx ImageMagick >/dev/null >&1
+        rpm -ivh nginx-14.2-1.14.2-1.el7.centos.x86_64.rpm
+        #yum install -y nginx ImageMagick >/dev/null >&1
         if [ `check_rpm  nginx-1` != 0 ]; then
             echo "\033[32mnginx安装成功\033[0m"
         else
