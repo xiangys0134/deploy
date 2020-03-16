@@ -34,7 +34,7 @@ remi_install() {
 
 #配置nginx虚拟站点配置文件
 nginx_conf() {
-    num=$1
+    num=$1 
     fastcgi_conf=/etc/nginx/fastcgi.conf
     nginx_upstream_conf=/etc/nginx/conf.d/upstream.conf
     nginx_vhost_conf=/etc/nginx/conf.d/default_path_info.conf_default
@@ -94,7 +94,7 @@ EOF
 server {
     listen              80;
     #listen            443;
-    server_name         test.com;
+    server_name         test.com; 
     index index.php index.html;
     charset utf8;
     gzip_min_length 1024;
@@ -151,17 +151,16 @@ nginx_install() {
     num=$1
     sys_ver=`lsb_release -r |awk -F' ' '{print $2}'|awk -F'.' '{ print $1 }'`
     if [ "`check_rpm nginx-release`" == "0" ]; then
-        #rpm -ivh http://nginx.org/packages/centos/${sys_ver}/noarch/RPMS/nginx-release-centos-${sys_ver}-0.el${sys_ver}.ngx.noarch.rpm >/dev/null >&1
-        rpm -ivh http://soft.g6p.cn/deploy/source/nginx-release-centos-7-0.el7.ngx.noarch.rpm
+        rpm -ivh http://nginx.org/packages/centos/${sys_ver}/noarch/RPMS/nginx-release-centos-${sys_ver}-0.el${sys_ver}.ngx.noarch.rpm >/dev/null >&1
         if [ "`check_rpm nginx-release`" != "0" ]; then
             echo "\033[32mnginx源安装成功\033[0m"
         else
             echo "\033[31mnginx源安装失败\033[0m"
         fi
     else
-        echo "\033[31m已存在nginx源\033[0m"
+        echo "\033[31m已存在nginx源\033[0m" 
     fi
-
+   
     if [ `check_rpm  nginx-1` == 0 ]; then
         yum install -y nginx ImageMagick >/dev/null >&1
         if [ `check_rpm  nginx-1` != 0 ]; then
@@ -177,5 +176,6 @@ case "$1" in
   web)
         remi_install
         nginx_install
-        nginx_conf
+        nginx_conf    
 esac
+
