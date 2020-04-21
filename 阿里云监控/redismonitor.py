@@ -14,7 +14,7 @@ password = "7UdUys8FM3nmrhvQ2YOLpTNwYSzShkPsE76"
 port = 6379
 cli = "/usr/bin/redis-cli"
 options = "ping"
-clt = client.AcsClient('LTAIZT4JJEH44hM9','MtUor3Cpvj1ex5COf5HYx41sFHdHOG')
+clt = client.AcsClient('LTACIZG4JJEH44hM9','RtUor3Cpvj1ex5COf5HYx41sFHdHOG')
 
 def put_metric(name, value):
     data = [{'groupId': 102264,'metricName': 'redis','dimensions':

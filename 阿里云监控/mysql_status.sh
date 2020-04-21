@@ -19,9 +19,9 @@ if [ "${SQLarray[0]}" == "Yes" -a "${SQLarray[1]}" == "Yes" ];then
     echo 1
 else
     echo 0
-fi	
+fi
 }
 ipaddr=`ip addr |grep eth1 |grep inet |awk '{print $2}' |cut -d "/" -f 1`
 let result=`mysql_status`
 aliyuncli cms PutCustomMetric --MetricList "
-[{'groupId': 45516,'metricName': 'mysql_repliction_status','dimensions': {'ip': '120.27.134.101:21504','source': 'root'},'type': 0,'values': {'value': $result}}]"
+[{'groupId': 45516,'metricName': 'mysql_repliction_status','dimensions': {'ip': '120.24.134.101:21504','source': 'root'},'type': 0,'values': {'value': $result}}]"
