@@ -17,7 +17,7 @@ xone-gateway
 docker_compose='/usr/local/bin/docker-compose'
 docker_compose_file='/data/xunce/compose/docker-compose.yml'
 #关键字过滤示例 grep zhaoshangxone |grep XONE-
-xone_java_image='zhaoshangxone,XONE-'
+xone_java_image='zhaoshangxone,XONE-java'
 
 
 [ $# -ne 1 ] && {
@@ -27,29 +27,31 @@ xone_java_image='zhaoshangxone,XONE-'
 
 
 #停止容器
-function get_docker_id {
+function stop_docker_id {
   docker_server=$1
-  docker_count=`sudo ${docker_compose} -f ${docker_compose_file} ps|grep ${docker_server}|wc -l`
-  if [ ${docker_count} -eq 1 ]; then
+  # docker_count=`sudo ${docker_compose} -f ${docker_compose_file} ps|grep ${docker_server}|wc -l`
+  # docker_status=`sudo ${docker_compose} -f ${docker_compose_file} ps||egrep "^$docker_server[[:space:]]{1,}"|awk '{print $1}'`
+  # docker_exit=`sudo ${docker_compose} -f ${docker_compose_file} ps||egrep "^$docker_server[[:space:]]{1,}"|awk '{print $(NF-1)}'`
+  docker_sum=`docker ps |egrep "$docker_server$"|wc -l`
+  if [  ${docker_sum} -eq 1 ]; then
     sudo ${docker_compose} -f ${docker_compose_file} stop ${docker_server}
-    [ $? -ne 0 ] && return 3
-    sudo ${docker_compose} -f ${docker_compose_file} rm -f ${docker_server}
-    if [ $? -eq 0 ]; then 
-      return 0
-    else
-      return 3
-    fi
-  elif [  ${docker_count} -gt 1 ]; then
-    sudo ${docker_compose} -f ${docker_compose_file} stop ${docker_server}
-    [ $? -ne 0 ] && return 3
-    sudo ${docker_compose} -f ${docker_compose_file} rm -f ${docker_server}
-    if [ $? -eq 0 ]; then 
-      return 1
-    else
-      return 3
-    fi
+    return 0
   else
-    return 2
+    return 1
+  fi
+}
+
+#rm容器
+function rm_docker_id {
+  docker_server=$1
+  # docker_count=`sudo ${docker_compose} -f ${docker_compose_file} ps|grep ${docker_server}|wc -l`
+  # docker_exit=`sudo docker ps|egrep "^$docker_server[[:space:]]{1,}"|awk '{print $(NF-1)}'`
+  docker_sum=`docker ps |egrep "$docker_server$"|wc -l`
+  if [  ${docker_sum} -eq 1 ]; then
+    sudo ${docker_compose} -f ${docker_compose_file} stop ${docker_server}
+    sudo ${docker_compose} -f ${docker_compose_file} rm -f ${docker_server}
+  else
+    sudo ${docker_compose} -f ${docker_compose_file} rm -f ${docker_server}
   fi
 }
 
@@ -77,6 +79,17 @@ function drop_docker_image {
 #启动新版本容器
 function start_docker {
   docker_server=$1
+  sudo ${docker_compose} -f ${docker_compose_file} start ${docker_server}
+  if [ $? -eq 0 ]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+#up容器
+function up_docker {
+  docker_server=$1
   sudo ${docker_compose} -f ${docker_compose_file} up -d ${docker_server}
   if [ $? -eq 0 ]; then
     return 0
@@ -95,17 +108,11 @@ case "$1" in
     for app in $server_app
     do
       #停止容器
-      get_docker_id $app 
-      if [ $? -eq 0 ]; then
-        echo -e "\033[32m docker app stop: ${app} 成功 \033[0m"
-      elif [ $? -eq 1 ]; then
-        echo -e "\033[32m docker app stop: ${app} 成功 \033[0m"
-        echo -e "存在多个名称：${app} 的容器"
-      else
-        echo -e "\033[31m docker app stop: ${app} 失败 \033[0m"
-      fi
+      stop_docker_id $app
+      #删除容器
+      rm_docker_id $app
     done
-    
+
     #删除镜像 通过传递关键字进行匹配docker image
     drop_docker_image ${xone_java_image}
     if [ $? -eq 0 ]; then
@@ -113,11 +120,11 @@ case "$1" in
     else
       echo -e "\033[31m docker image rm : 失败 \033[0m"
     fi
-    
+
     #run容器
     for app in $server_app
     do
-      start_docker $app 
+      up_docker $app
       if [ $? -eq 0 ]; then
         echo -e "\033[32m docker server: ${docker_server} 启动成功 \033[0m"
       else
@@ -125,24 +132,25 @@ case "$1" in
       fi
     done
     ;;
-  down)
+  stop)
+    for app in $server_app
+    do
+      stop_docker_id $app
+    done
+    ;;
+  start)
     for app in $server_app
     do
       #停止容器
-      get_docker_id $app 
+      start_docker $app
       if [ $? -eq 0 ]; then
-        echo -e "\033[32m docker app stop: ${app} 成功 \033[0m"
-      elif [ $? -eq 1 ]; then
-        echo -e "\033[32m docker app stop: ${app} 成功 \033[0m"
-        echo -e "存在多个名称：${app} 的容器"
+        echo -e "\033[32m docker server: ${docker_server} 启动成功 \033[0m"
       else
-        echo -e "\033[31m docker app stop: ${app} 失败 \033[0m"
+        echo -e "\033[31m docker server: ${docker_server} 启动失败 \033[0m"
       fi
     done
     ;;
   *)
-    echo "USAGE:{up|down}"
+    echo "USAGE:{up|start|stop}"
     ;;
 esac
-
-

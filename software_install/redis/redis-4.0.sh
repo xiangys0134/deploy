@@ -19,26 +19,26 @@ function epel_install() {
     #判断是否安装redhat-lsb-core
     if [ `check_rpm redhat-lsb-core` == '0' ]; then
         yum install -y redhat-lsb-core  >/dev/null >&1
-    fi 
+    fi
 
     if [ `check_rpm epel-release` == '0' ]; then
         yum install -y epel-release
     fi
 
-    #重新加载环境变量 
+    #重新加载环境变量
     sys_ver=`lsb_release -r |awk -F' ' '{print $2}'|awk -F'.' '{ print $1 }'`
-    #echo ${sys_ver}    
+    #echo ${sys_ver}
 
     #判断是否安装remi-release,如果没有安装则安装
     if [ `check_rpm remi-release` == '0' ]; then
         rpm -ivh http://rpms.famillecollet.com/enterprise/remi-release-${sys_ver}.rpm  &>/dev/null
         if [ $? -eq 0 ]; then
             echo -e "\033[32;1mepel-release install seccuess\033[0m" |tee -a ${log}
-            yum clean all            
+            yum clean all
         else
             echo -e "\033[31;1mepel-release install fail\033[0m" |tee -a ${log}
         fi
-    fi   
+    fi
 
     if [ `check_rpm wget` == '0' ]; then
         yum install -y wget
@@ -53,7 +53,7 @@ function redis_conf() {
     redis_shutdown=/usr/libexec/redis-shutdown
     redis_service=/usr/lib/systemd/system/redis-${redis_port}.service
     redis_ip=0.0.0.0
-    
+
     if [ ! -f ${redis_cf} ]; then
         cat >>${redis_cf}<< EOF
 ######Master config
@@ -71,7 +71,7 @@ tcp-backlog 511
 # 当客户端闲置多少秒后关闭连接，如果设置为0表示关闭该功能。
 timeout 300
 # 单位是秒，表示将周期性的使用SO_KEEPALIVE检测客户端是否还处于健康状态，避免服务器一直阻塞，官方给出的建议值是300S
-tcp-keepalive 0
+tcp-keepalive 300
 # 日志级别。可选项有：debug（记录大量日志信息，适用于开发、测试阶段）；  verbose（较多日志信息）；  notice（适量日志信息，使用于生产环境）；warning（仅有部分重要、关键信息才会被记录）。
 loglevel debug
 # 日志文件的位置，当指定为空字符串时，为标准输出，如果redis已守护进程模式运行，那么日志将会输出到  /dev/null 。
@@ -143,7 +143,7 @@ lua-time-limit 5000
 #cluster-conf-file 选项则设定了保存节点配置文件的路径， 默认值为nodes.conf
 #cluster-config-file nodes.conf
 #
-#节点互连超时的阀值 
+#节点互连超时的阀值
 #cluster-node-timeout 15000
 #cluster-migration-barrier 1
 #
@@ -231,7 +231,7 @@ if [ -e "\$SOCK" ] ; then
     \$REDIS_CLI -s \$SOCK \$ADDITIONAL_PARAMS shutdown
 else
     \$REDIS_CLI -h \$HOST -p \$PORT \$ADDITIONAL_PARAMS shutdown
-fi 
+fi
 EOF
     fi
     /bin/echo never > /sys/kernel/mm/transparent_hugepage/enabled
@@ -262,7 +262,7 @@ function redis_install() {
             echo -e "\033[32;1mredis install seccuess\033[0m" |tee -a ${log}
         else
             echo -e "\033[31;1mredis install fail\033[0m" |tee -a ${log}
-        fi   
+        fi
     fi
 
     [ ! -d ${redis_data}/conf ] && mkdir -p ${redis_data}/conf
@@ -272,7 +272,7 @@ function redis_install() {
     chown -R redis.redis ${redis_data}
 
     #生成redis配置文件
-    [ -f /usr/lib/systemd/system/redis.service ] && rm -rf /usr/lib/systemd/system/redis.service 
+    [ -f /usr/lib/systemd/system/redis.service ] && rm -rf /usr/lib/systemd/system/redis.service
     [ -f /usr/lib/systemd/system/redis-sentinel.service ] && rm -rf /usr/lib/systemd/system/redis-sentinel.service
 
     if [ ! -n "${redis_port}" ]; then
@@ -287,4 +287,3 @@ function redis_install() {
 
 redis_dir=/data/redis
 redis_install ${redis_dir}
-
