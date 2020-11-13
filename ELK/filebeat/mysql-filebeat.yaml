@@ -1,0 +1,25 @@
+filebeat.inputs:
+- type: log
+  enabled: true
+  tags: mysql-slow-logs
+  fields:
+    log_source: mysql-slow-logs
+    addr: 192.168.0.134
+  paths:
+    - /data/mysql/log/slow.log
+
+  exclude_lines: '^\# Time'
+  multiline.pattern: '^\# Time|^\# User'
+  multiline.negate: true
+  multiline.match: after
+
+output.redis:
+  hosts: ["192.168.10.105:6380"]
+  db: 0
+  timeout: 5
+  password: "intel.com"
+  key: "default_list"
+  keys:
+    - key: "mysql-slow-logs"
+      when.equals:
+        fields.log_source: "mysql-slow-logs"
