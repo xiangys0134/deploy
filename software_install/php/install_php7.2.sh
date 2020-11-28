@@ -22,15 +22,15 @@ epel_install() {
     #判断是否安装redhat-lsb-core
     if [ `check_rpm redhat-lsb-core` == 0 ]; then
         yum install -y redhat-lsb-core  >/dev/null >&1
-    fi 
-  
+    fi
+
     #判断是否安装epel-release
     if [ `check_rpm epel-release` == 0 ]; then
         yum install -y epel-release  >/dev/null >&1
-    fi 
+    fi
 
     sys_ver=`lsb_release -r |awk -F' ' '{print $2}'|awk -F'.' '{ print $1 }'`
-    
+
     #source /etc/profile
     #判断是否安装remi-release,如果没有安装则安装
     if [ `check_rpm remi-release` == 0 ]; then
@@ -40,7 +40,7 @@ epel_install() {
         else
             echo -e "\033[31;1mremi-release install fail\033[0m" |tee -a ${log}
         fi
-    fi   
+    fi
 
 
 }
@@ -50,16 +50,16 @@ php_fpm_conf() {
     php_ver=$2
     php_fpm_cf=$3
     username=nginx
-  
 
-    id nginx &>/dev/null 
+
+    id nginx &>/dev/null
     if [ $? -ne 0 ]; then
         groupadd nginx
         useradd -M -g nginx -s /sbin/nologin  nginx
     fi
-    
 
-    if [ ! -f ${php_fpm_cf} ]; then  
+
+    if [ ! -f ${php_fpm_cf} ]; then
         echo "******************************************************************"
 cat >>${php_fpm_cf}<< EOF
 [web${num}]
@@ -70,7 +70,7 @@ listen = /var/run/php-fpm/php-fpm-${php_ver}-web${num}.sock
 ;允许访问FastCGI进程的IP白名单，设置any为不限制IP，如果要设置其他主机的nginx也能访问这台FPM进程，listen处要设置成本地可被访问的IP。默认值是any。每个地址是用逗号分隔. 如果没有设置或者为空，则允许任何服务器请求连接。
 ;backlog数，设置 listen 的半连接队列长度，-1表示无限制，由操作系统决定，此行注释掉就行。
 listen.backlog = 2048
-;unix socket设置选项，如果使用tcp方式访问，这里注释即可。 
+;unix socket设置选项，如果使用tcp方式访问，这里注释即可。
 listen.owner = ${username}
 listen.group = ${username}
 listen.mode = 0666
@@ -110,7 +110,7 @@ php_admin_value[memory_limit] = 256M                                            
 ;php_admin_value[disable_functions] = passthru,exec,system,chroot,scandir,chgrp,chown,shell_exec,proc_open,proc_get_status,ini_alter,ini_alter,ini_restore,dl,openlog,syslog,readlink,symlink,popepassthru,stream_socket_server
 ;php_admin_value[open_basedir] =  /data/www/:/tmp/:/home/www/
 ;upload_tmp_dir 的这个参数为上传文件的临时目录，需要 php 进程有读写权限。
-php_admin_value[upload_tmp_dir] =  /tmp 
+php_admin_value[upload_tmp_dir] =  /tmp
 
 EOF
 
@@ -137,26 +137,26 @@ install_php() {
     #添加yum源,下面的判定适用于自建yum源,对应的进行修改
     rpm -Uvh https://mirror.webtatic.com/yum/el7/epel-release.rpm
     rpm -Uvh https://mirror.webtatic.com/yum/el7/webtatic-release.rpm
-    
+
     #检查php72w是否安装
     if [ `check_rpm php72w-common` == 0 ]; then
         yum install php72w php72w-devel php72w-opcache php72w-mbstring php72w-mysqlnd php72w-fpm php72w-xml php72w-gd php72w-xmlrpc php72w-pecl-redis php72w-pecl-apcu php72w-bcmath php72w-pecl-igbinary php72w-soap php72w-pear php72w-pecl-xdebug php72w-pecl-mongodb openssl openssl-devel mysql-community-client gcc gcc-c++ make unzip autoconf wget -y
-    fi 
+    fi
 
     if [ $? -ne 0 ]; then
         echo "\033[31;1mphp install false\033[0m" |tee -a ${log}
         exit 6
-    fi   
+    fi
 
     if [ -z "${number}" ]; then
         let number=2
-    fi 
-    
+    fi
+
     if [ -z "${php_version}" ]; then
         php_version=7.2
     fi
 
-    [ -f /etc/php-fpm.d/www.conf ] && mv /etc/php-fpm.d/www.conf /etc/php-fpm.d/www.conf.default     
+    [ -f /etc/php-fpm.d/www.conf ] && mv /etc/php-fpm.d/www.conf /etc/php-fpm.d/www.conf.default
 
     let i=1
     while [ $i -le ${number} ]
@@ -182,7 +182,8 @@ install_php() {
    fi
    if [ -d /etc/php.d ]; then
        echo "extension=beast.so" > /etc/php.d/50-beast.ini
-   fi  
+       echo "beast.log_user=nginx" >> /etc/php.d/50-beast.ini
+   fi
 
 }
 
