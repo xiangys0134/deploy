@@ -7,6 +7,7 @@
 [ -f /etc/profile ] && . /etc/profile
 
 cmd=`pwd`
+version='19.03.14'
 
 function check_rpm {
     rpm_package=$1
@@ -59,7 +60,7 @@ function docker_install {
         exit 3
     fi
     yum makecache fast
-    yum -y install docker-ce
+    yum -y install docker-ce-$version
     if [ $? -ne 0 ]; then
         echo -e "\033[31mdocker安装失败\033[0m"
         exit 4
@@ -121,3 +122,4 @@ function python_env {
 epel_install
 docker_install
 python_env
+
