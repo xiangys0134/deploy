@@ -1,0 +1,314 @@
+# Default values for fluentd.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+image:
+  repository: registry.cn-hangzhou.aliyuncs.com/kubeapps/gcr-fluentd-elasticsearch
+  tag: v2.4.0
+  pullPolicy: IfNotPresent
+  # pullSecrets:
+  #   - secret1
+  #   - secret2
+
+output:
+  host: elasticsearch-elasticsearch-coordinating-only
+  port: 9200
+  scheme: http
+  sslVersion: TLSv1
+  buffer_chunk_limit: 2M
+  buffer_queue_limit: 8
+
+env: {}
+
+# Extra Environment Values - allows yaml definitions
+extraEnvVars:
+#  - name: VALUE_FROM_SECRET
+#    valueFrom:
+#      secretKeyRef:
+#        name: secret_name
+#        key: secret_key
+
+# extraVolumes:
+#   - name: es-certs
+#     secret:
+#       defaultMode: 420
+#       secretName: es-certs
+# extraVolumeMounts:
+#   - name: es-certs
+#     mountPath: /certs
+#     readOnly: true
+
+plugins:
+  enabled: false
+  pluginsList: []
+
+service:
+  annotations: {}
+  type: ClusterIP
+  # loadBalancerIP:
+  # type: NodePort
+  # nodePort:
+  # Used to create Service records
+  ports:
+    - name: "monitor-agent"
+      protocol: TCP
+      containerPort: 24220
+
+metrics:
+  enabled: false
+  service:
+    port: 24231
+  serviceMonitor:
+    enabled: false
+    additionalLabels: {}
+    # namespace: monitoring
+    # interval: 30s
+    # scrapeTimeout: 10s
+
+annotations: {}
+#  prometheus.io/scrape: "true"
+#  prometheus.io/port: "24231"
+
+ingress:
+  enabled: false
+  annotations:
+    kubernetes.io/ingress.class: nginx
+#    kubernetes.io/tls-acme: "true"
+#    # Depending on which version of ingress controller you may need to configure properly - https://kubernetes.github.io/ingress-nginx/examples/rewrite/#rewrite-target
+#    nginx.ingress.kubernetes.io/rewrite-target: /
+  labels: []
+  # If doing TCP or UDP ingress rule don't forget to update your Ingress Controller to accept TCP connections - https://kubernetes.github.io/ingress-nginx/user-guide/exposing-tcp-udp-services/
+  hosts:
+#     - name: "http-input.local"
+#       protocol: TCP
+#       servicePort: 9880
+#       path: /
+  tls: {}
+  # Secrets must be manually created in the namespace.
+#    - secretName: http-input-tls
+#      hosts:
+#        - http-input.local
+
+configMaps:
+  general.conf: |
+    # Prevent fluentd from handling records containing its own logs. Otherwise
+    # it can lead to an infinite loop, when error in sending one message generates
+    # another message which also fails to be sent and so on.
+    <match fluentd.**>
+      @type null
+    </match>
+    # Used for health checking
+    <source>
+      @type http
+      port 9880
+      bind 0.0.0.0
+    </source>
+
+    # Emits internal metrics to every minute, and also exposes them on port
+    # 24220. Useful for determining if an output plugin is retryring/erroring,
+    # or determining the buffer queue length.
+    <source>
+      @type monitor_agent
+      bind 0.0.0.0
+      port 24220
+      tag fluentd.monitor.metrics
+    </source>
+  system.conf: |-
+    <system>
+      path /var/log/messages
+      root_dir /tmp/fluentd-buffers/
+    </system>
+  containers.input.conf: |-
+    <source>
+      @id fluentd-containers.log
+      @type tail                             
+      path /var/log/containers/*.log        
+      pos_file /var/log/es-containers.log.pos
+      tag raw.kubernetes.*                   
+      read_from_head true
+      <parse>                                
+        @type multi_format                  
+      #  <pattern>
+      #    format json                      
+      #    time_key time                     
+      #    time_format %Y-%m-%dT%H:%M:%S.%NZ
+      #  </pattern>
+      #  <pattern>
+      #    format /^(?<time>.+) (?<stream>stdout|stderr) [^ ]* (?<log>.*)$/
+      #    time_format %Y-%m-%dT%H:%M:%S.%N%:z
+      #  </pattern>
+      </parse>
+    </source>
+
+    <match raw.kubernetes.**>
+      @type file
+      path /var/log/fluent
+    </match>
+    # 在日志输出中检测异常，并将其作为一条日志转发 
+    <match raw.kubernetes.**>           
+      @id raw.kubernetes
+      @type detect_exceptions          
+      remove_tag_prefix raw            
+      message log                       
+      stream stream                     
+      multiline_flush_interval 5
+      max_bytes 500000
+      max_lines 1000
+    </match>
+
+    <filter **>  # 拼接日志
+      @id filter_concat
+      @type concat              
+      key message
+      multiline_end_regexp /\n$/  
+      separator ""
+    </filter> 
+    # 添加 Kubernetes metadata 数据
+    <filter kubernetes.**>
+      @id filter_kubernetes_metadata
+      @type kubernetes_metadata
+    </filter>
+
+    # 修复 ES 中的 JSON 字段
+    # 插件地址：https://github.com/repeatedly/fluent-plugin-multi-format-parser
+    <filter kubernetes.**>
+      @id filter_parser
+      @type parser                
+      key_name log                
+      reserve_data true          
+      remove_key_name_field true  
+      <parse>
+        @type multi_format
+        <pattern>
+          format json
+        </pattern>
+        <pattern>
+          format none
+        </pattern>
+      </parse>
+    </filter>
+
+    #删除一些多余的属性
+    <filter kubernetes.**>
+      @type record_transformer
+      remove_keys $.docker.container_id,$.kubernetes.container_image_id,$.kubernetes.pod_id,$.kubernetes.namespace_id,$.kubernetes.master_url,$.kubernetes.labels.pod-template-hash
+    </filter>
+
+    # 只保留具有app=vone-indicator标签的Pod日志
+    #<filter kubernetes.**>
+    #  @id filter_log
+    #  @type grep
+    #  <regexp>
+    #    key $.kubernetes.labels.app
+    #    pattern ^vone-indicator$
+    #  </regexp>
+    #</filter>
+    #<filter kubernetes.**>
+    #  @id filter_log
+    #  @type grep
+    #  <regexp>
+    #    key $.kubernetes.labels.logging
+    #    pattern ^true$
+    #  </regexp>
+    #</filter>
+
+  forward-input.conf: |
+    <source>
+      @id forward
+      @type forward
+      #port 24224
+      #bind 0.0.0.0
+    </source>
+  output.conf: |
+    <match **>
+      @id elasticsearch
+      @type elasticsearch
+      @log_level info
+      include_tag_key true
+      # Replace with the host/port to your Elasticsearch cluster.
+      host elasticsearch-elasticsearch-coordinating-only
+      port 9200
+      scheme http
+      ssl_version TLSv1
+      logstash_format true
+      logstash_prefix k8s
+      <buffer>
+        @type file
+        path /var/log/fluentd-buffers/kubernetes.system.buffer
+        flush_mode interval
+        retry_type exponential_backoff
+        flush_thread_count 2
+        flush_interval 5s
+        retry_forever
+        retry_max_interval 30
+        chunk_limit_size 2M
+        queue_limit_length 8
+        overflow_action block
+      </buffer>
+    </match>
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 500m
+  #  memory: 200Mi
+  # requests:
+  #  cpu: 500m
+  #  memory: 200Mi
+
+rbac:
+  # Specifies whether RBAC resources should be created
+  create: true
+
+serviceAccount:
+  # Specifies whether a ServiceAccount should be created
+  create: true
+  # The name of the ServiceAccount to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+## Persist data to a persistent volume
+persistence:
+  enabled: false
+
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  ##
+  # storageClass: "-"
+  # annotations: {}
+  accessMode: ReadWriteOnce
+  size: 10Gi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Enable autoscaling using HorizontalPodAutoscaler
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 60
+
+# Consider to set higher value when using in conjuction with autoscaling
+# Full description about this field: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.15/#pod-v1-core
+terminationGracePeriodSeconds: 30
