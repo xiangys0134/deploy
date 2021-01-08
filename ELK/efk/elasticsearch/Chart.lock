@@ -1,0 +1,6 @@
+dependencies:
+- name: kibana
+  repository: https://apphub.aliyuncs.com
+  version: 5.0.5
+digest: sha256:6eaff29ecf1805ecd38ca83f25d0512402212e2f8c19a05686fe6cf5db80f7d0
+generated: "2020-02-18T22:01:49.772818562+08:00"
