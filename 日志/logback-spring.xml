@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml" />
+    <!--
+        配置说明 日志按照日志等级分目录存放
+        DEBUG：存放debug级别日志
+        INFO: 存放INFO级别日志
+        WARN：存放WARN级别日志
+        ERROR:存放ERROR级别日志
+        ALL:存放所有级别日志
+    -->
+    <property name="FILE_XC_LOG_PATTERN" value="${FILE_XC_LOG_PATTERN:-%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}} [%X{XC_LOG_TRACK_ID:- }] ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%t] %-40.40logger{39} : %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+    <property name="CONSOLE_XC_LOG_PATTERN" value="${CONSOLE_XC_LOG_PATTERN:-%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} [%clr(%X{XC_LOG_TRACK_ID:- }){magenta}] %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+
+    <!-- 日志存放路径 -->
+    <property name="LOG_HOME" value="/logs/xc-osp/gateway-service"/>
+    <!--日志历史数据保留天数属性   单位：天-->
+    <property name="MAX_DEBUG_HISTORY" value="30"/>
+    <property name="MAX_INFO_HISTORY" value="30"/>
+    <property name="MAX_WARN_HISTORY" value="30"/>
+    <property name="MAX_ERROR_HISTORY" value="30"/>
+
+    <!--单个日志文件最大容量属性 -->
+    <property name="MAX_DEBUG_FILESIZE" value="100MB"/>
+    <property name="MAX_INFO_FILESIZE" value="100MB"/>
+    <property name="MAX_WARN_FILESIZE" value="100MB"/>
+    <property name="MAX_ERROR_FILESIZE" value="100MB"/>
+
+    <!--日志文件的总大小的最大值属性 -->
+    <property name="MAX_DEBUG_TOTAL_SIZE" value="10GB"/>
+    <property name="MAX_INFO_TOTAL_SIZE" value="10GB"/>
+    <property name="MAX_WARN_TOTAL_SIZE" value="10GB"/>
+    <property name="MAX_ERROR_TOTAL_SIZE" value="10GB"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${CONSOLE_XC_LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+    <jmxConfigurator/>
+
+    <!-- 按照每天生成日志文件 -->
+    <appender name="DEBUG-FILE"  class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/debug/logback_debug.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+            <pattern>${FILE_XC_LOG_PATTERN}</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>${LOG_HOME}/debug/logback_debug-%d{yyyy-MM-dd}.%i.zip</fileNamePattern>
+            <!-- each file should be at most 100MB, keep 60 days worth of history, but at most 20GB -->
+            <maxFileSize>${MAX_DEBUG_FILESIZE}</maxFileSize>
+            <maxHistory>${MAX_DEBUG_HISTORY}</maxHistory>
+            <totalSizeCap>${MAX_DEBUG_TOTAL_SIZE}</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>DEBUG</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!-- 按照每天生成日志文件 -->
+    <appender name="INFO-FILE"  class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/info/logback_info.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+            <pattern>${FILE_XC_LOG_PATTERN}</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>${LOG_HOME}/info/logback_info-%d{yyyy-MM-dd}.%i.zip</fileNamePattern>
+            <!-- each file should be at most 100MB, keep 60 days worth of history, but at most 20GB -->
+            <maxFileSize>${MAX_INFO_FILESIZE}</maxFileSize>
+            <maxHistory>${MAX_INFO_HISTORY}</maxHistory>
+            <totalSizeCap>${MAX_INFO_TOTAL_SIZE}</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!-- 按照每天生成日志文件 -->
+    <appender name="WARN-FILE"  class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/warn/logback_warn.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+            <pattern>${FILE_XC_LOG_PATTERN}</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>${LOG_HOME}/warn/logback_warn-%d{yyyy-MM-dd}.%i.zip</fileNamePattern>
+            <!-- each file should be at most 100MB, keep 60 days worth of history, but at most 20GB -->
+            <maxFileSize>${MAX_WARN_FILESIZE}</maxFileSize>
+            <maxHistory>${MAX_WARN_HISTORY}</maxHistory>
+            <totalSizeCap>${MAX_WARN_TOTAL_SIZE}</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>WARN</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!-- 按照每天生成日志文件 -->
+    <appender name="ERROR-FILE"  class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/error/logback_error.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+            <pattern>${FILE_XC_LOG_PATTERN}</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>${LOG_HOME}/error/logback_error-%d{yyyy-MM-dd}.%i.zip</fileNamePattern>
+            <!-- each file should be at most 100MB, keep 60 days worth of history, but at most 20GB -->
+            <maxFileSize>${MAX_ERROR_FILESIZE}</maxFileSize>
+            <maxHistory>${MAX_ERROR_HISTORY}</maxHistory>
+            <totalSizeCap>${MAX_ERROR_TOTAL_SIZE}</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!-- 输出appLog到文件，按照每天生成日志文件 -->
+    <appender name="FILE_INFO_APP" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/app/app.log</file>
+        <!-- 配置用于复杂json输出格式的encoder -->
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <!-- 配置输出格式美化的json解析器 -->
+            <!--<jsonGeneratorDecorator class="net.logstash.logback.decorate.PrettyPrintingJsonGeneratorDecorator"/>-->
+            <providers>
+                <!-- 使用JsonEncoder提供的可以进行模式匹配的provider -->
+                <pattern>
+                    <!-- 忽略/不显示没有值的属性 -->
+                    <omitEmptyFields>true</omitEmptyFields>
+                    <!-- 配置具体的模式 -->
+                    <pattern>
+                        {
+                        "logEventType": "%X{logEventType:-appLog}",
+                        "app_timestamp": "%d{yyyy-MM-dd'T'HH:mm:ss.SSS}",
+                        "thread": "%thread",
+                        "level": "%level",
+                        "logger": "%logger{40}",
+                        "map": {
+                        "http_accept": "%X{http_accept}",
+                        "http_content_length": "%X{http_content_length}",
+                        "http_content_type": "%X{http_content_type}",
+                        "http_elapsed_time": "%X{http_elapsed_time}",
+                        "http_location": "%X{http_location}",
+                        "http_method": "%X{http_method}",
+                        "http_path": "%X{http_path}",
+                        "http_remote_host": "%X{http_remote_host}",
+                        "http_status_code": "%X{http_status_code}",
+                        "http_user_agent": "%X{http_user_agent}",
+                        "http_version": "%X{http_version}"
+                        },
+                        "message": "%message",
+                        "stack_trace": "%exception{40}",
+                        "spanId": "%X{X-B3-SpanId:-}",
+                        "traceId": "%X{X-B3-TraceId:-}",
+                        "parentId": "%X{X-B3-ParentSpanId:-}"
+                        }
+                    </pattern>
+                </pattern>
+            </providers>
+        </encoder>
+        <!-- 定义输出文件滚动策略 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- 按天按文件大小生成文件 -->
+            <fileNamePattern>${LOG_HOME}/app/logback_info-%d{yyyy-MM-dd}.%i.zip</fileNamePattern>
+            <!-- 每个日志文件的最大大小，这里定义为100M -->
+            <maxFileSize>${MAX_INFO_FILESIZE}</maxFileSize>
+            <!-- 日志保留的天数，这里定义为30天 -->
+            <maxHistory>${MAX_INFO_HISTORY}</maxHistory>
+            <!-- 所有日志存档文件的总大小，这里定义为不超过10GB -->
+            <totalSizeCap>${MAX_INFO_TOTAL_SIZE}</totalSizeCap>
+            <!-- 是否在启动时清理历史日志，这里定义为false -->
+            <cleanHistoryOnStart>false</cleanHistoryOnStart>
+        </rollingPolicy>
+        <!-- 定义过滤器，仅将appLog类型的日志存放入文件 -->
+        <filter class="com.xctech.log.core.filter.LogEventTypeFilter">
+            <logEventType>appLog</logEventType>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+
+    <!-- 输出accessLog到文件，按照每天生成日志文件 -->
+    <appender name="FILE_INFO_ACCESS" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/access/access.log</file>
+        <!-- 配置用于复杂json输出格式的encoder -->
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <!-- 配置输出格式美化的json解析器 -->
+            <!--<jsonGeneratorDecorator class="net.logstash.logback.decorate.PrettyPrintingJsonGeneratorDecorator"/>-->
+            <providers>
+                <!-- 使用JsonEncoder提供的可以进行模式匹配的provider -->
+                <pattern>
+                    <!-- 忽略/不显示没有值的属性 -->
+                    <omitEmptyFields>true</omitEmptyFields>
+                    <!-- 配置具体的模式 -->
+                    <pattern>
+                        {
+                        "logEventType": "%X{logEventType:-appLog}",
+                        "app_timestamp": "%d{yyyy-MM-dd'T'HH:mm:ss.SSS}",
+                        "thread": "%thread",
+                        "level": "%level",
+                        "logger": "%logger{40}",
+                        "map": {
+                        "http_accept": "%X{http_accept}",
+                        "http_content_length": "%X{http_content_length}",
+                        "http_content_type": "%X{http_content_type}",
+                        "http_elapsed_time": "%X{http_elapsed_time}",
+                        "http_location": "%X{http_location}",
+                        "http_method": "%X{http_method}",
+                        "http_path": "%X{http_path}",
+                        "http_remote_host": "%X{http_remote_host}",
+                        "http_status_code": "%X{http_status_code}",
+                        "http_user_agent": "%X{http_user_agent}",
+                        "http_version": "%X{http_version}"
+                        },
+                        "message": "%message",
+                        "stack_trace": "%exception{40}",
+                        "spanId": "%X{X-B3-SpanId:-}",
+                        "traceId": "%X{X-B3-TraceId:-}",
+                        "parentId": "%X{X-B3-ParentSpanId:-}"
+                        }
+                    </pattern>
+                </pattern>
+            </providers>
+        </encoder>
+        <!-- 定义输出文件滚动策略 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- 按天按文件大小生成文件 -->
+            <fileNamePattern>${LOG_HOME}/access/access-%d{yyyy-MM-dd}.%i.zip</fileNamePattern>
+            <!-- 每个日志文件的最大大小，这里定义为100M -->
+            <maxFileSize>${MAX_INFO_FILESIZE}</maxFileSize>
+            <!-- 日志保留的天数，这里定义为30天 -->
+            <maxHistory>${MAX_INFO_HISTORY}</maxHistory>
+            <!-- 所有日志存档文件的总大小，这里定义为不超过10GB -->
+            <totalSizeCap>${MAX_INFO_TOTAL_SIZE}</totalSizeCap>
+            <!-- 是否在启动时清理历史日志，这里定义为false -->
+            <cleanHistoryOnStart>false</cleanHistoryOnStart>
+        </rollingPolicy>
+        <!-- 定义过滤器，仅将accessLog类型的日志存放入文件 -->
+        <filter class="com.xctech.log.core.filter.LogEventTypeFilter">
+            <logEventType>accessLog</logEventType>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+
+    <!--开发环境or测试环境 -->
+    <logger name="com.xctech" level="DEBUG" />
+    <logger name="org.apache.kafka" level="OFF"/>
+    <logger name="org.springframework" level="INFO"/>
+    <logger name="com.netflix" level="INFO"/>
+    <logger name="org.apache" level="INFO"/>
+    <logger name="org.mongodb.driver" level="INFO"/>
+
+    <!-- 生产环境 -->
+    <!--<springProfile name="prop">-->
+    <!--<logger name="com.xctech" level="DEBUG" />
+    <logger name="org.apache.kafka" level="OFF"/>
+    <logger name="org.apache" level="INFO"/>
+    <logger name="org.springframework" level="INFO"/>
+    <logger name="com.netflix" level="INFO"/>
+    <logger name="org.mongodb.driver" level="INFO"/>-->
+    <!--</springProfile>-->
+
+    <root level="DEBUG">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="DEBUG-FILE" />
+        <appender-ref ref="INFO-FILE" />
+        <appender-ref ref="WARN-FILE" />
+        <appender-ref ref="ERROR-FILE" />
+        <appender-ref ref="FILE_INFO_APP" />
+        <appender-ref ref="FILE_INFO_ACCESS" />
+    </root>
+</configuration>
+
