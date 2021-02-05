@@ -1,10 +1,10 @@
 #!/bin/bash
 source /etc/profile
 :<<COMMENT
-.... Author: xiao.li
-.... Date: 2020-02-10
+.... Author: xiao.li yousong.xiang
+.... Date: 2020-02-10 2021.1.27
 .... version:0.0.1
-.... Description: Centos7初始化脚本
+.... Description: Centos7初始化脚本,局部功能调整
 .... Alter:
 COMMENT
 ################################################################
@@ -27,7 +27,7 @@ function env_check() {
     exit 3
   fi
   export install_bak_path='/opt/install_bak'
-  export white_list='59.37.47.22,183.62.140.90'
+  #export white_list='59.37.47.22,183.62.140.90'
   export opadm_set_stat='opadm_set_stat'
   [ -d ${install_bak_path} ] || mkdir -p ${install_bak_path}
   [ -f ${install_bak_path}/${opadm_set_stat} ] || touch ${install_bak_path}/${opadm_set_stat}
@@ -36,7 +36,7 @@ function env_check() {
 #同步系统时间
 function set_date() {
   timedatectl set-timezone Asia/Shanghai >/dev/null >&1
-  yum -y install ntp >/dev/null >&1
+  yum -y install epel-release ntp  >/dev/null >&1
   /usr/sbin/ntpdate cn.pool.ntp.org >/dev/null >&1
   echo "* 4 * * * /usr/sbin/ntpdate cn.pool.ntp.org > /dev/null 2>&1" >> /var/spool/cron/root
   systemctl  restart crond.service >/dev/null >&1
@@ -45,8 +45,9 @@ function set_date() {
 #安装基本软件
 function install_base_soft() {
   yum install -y http://rpms.famillecollet.com/enterprise/remi-release-7.rpm >/dev/null >&1
-  bsoft_list=(man yum-plugin-fastestmirror vim-enhanced ntp wget bash-completion elinks lrzsz unix2dos dos2unix git unzip python python-devel python-pip net-tools)
-  for basesoft in ${bsoft_list[*]};do rpm -q "$basesoft" > /dev/null || yum -y install "$basesoft" >/dev/null >&1;done
+  #bsoft_list=(man yum-plugin-fastestmirror vim-enhanced ntp wget bash-completion elinks lrzsz unix2dos dos2unix git unzip python python-devel python-pip net-tools)
+  #for basesoft in ${bsoft_list[*]};do rpm -q "$basesoft" > /dev/null || yum -y install "$basesoft" >/dev/null >&1;done
+  yum install -y man yum-plugin-fastestmirror vim-enhanced ntp wget bash-completion elinks lrzsz unix2dos dos2unix git unzip python python-devel python-pip net-tools >/dev/null >&1
 }
 
 #添加su用户
@@ -97,7 +98,7 @@ function set_sshroot() {
 
 #设置ssh端口
 function set_sshport(){
-  export mysshlistenport='31235'
+  export mysshlistenport='21235'
   if (! grep -qE '^###ops_diy_flag_sshport$' /etc/ssh/sshd_config);then
     echo '###ops_diy_flag_sshport' >> /etc/ssh/sshd_config
     if [ $(grep '^Port\ \+[0-9]\{2,5\}\ *$' /etc/ssh/sshd_config|wc -l) -eq 1 ];then
@@ -134,12 +135,22 @@ EOF
 
 #设置防火墙服务
 function set_iptables() {
+  #判断是否开启防火墙
+  firewall-cmd --list-all &>/dev/null
+  if [ $? -ne 0 ]; then
+    return 4
+  fi
   systemctl enable firewalld.service >/dev/null >&1
   systemctl restart firewalld.service  >/dev/null >&1
 }
 
 #设置防火墙规则
 function set_iptrules(){
+#判断是否开启防火墙
+firewall-cmd --list-all &>/dev/null
+if [ $? -ne 0 ]; then
+  return 4
+fi
 #开放http协议
 firewall-cmd --permanent --zone=public --add-service=http >/dev/null >&1
 #禁ping
@@ -147,7 +158,7 @@ firewall-cmd --permanent --zone=public --add-service=http >/dev/null >&1
 #禁止开放ssh服务端口
 #firewall-cmd --permanent --zone=public --remove-service=ssh
 #开放ssh服务
-firewall-cmd --permanent --zone=public --add-port=31235/tcp >/dev/null >&1
+firewall-cmd --permanent --zone=public --add-port=21235/tcp >/dev/null >&1
 #允许某ip段访问ssh端口
 #firewall-cmd --permanent --zone=public --add-rich-rule="rule family="ipv4" source address="10.98.0.0/24" service name="ssh" accept"
 #firewall-cmd --permanent --zone=public --add-rich-rule="rule family="ipv4" source address="192.168.142.166" port protocol="tcp" port="6379" accept"
@@ -208,7 +219,7 @@ function set_sysctl() {
     net.core.wmem_max = 33554432
     net.ipv4.tcp_rmem = 4096 87380 16777216
     net.ipv4.tcp_wmem = 4096 65536 16777216
-    net.nf_conntrack_max = 524288
+    #net.nf_conntrack_max = 524288
     net.ipv4.tcp_fin_timeout = 30
     #net.ipv4.tcp_tw_reuse = 1
     net.ipv4.tcp_tw_recycle = 0
@@ -328,14 +339,14 @@ function main() {
   pids+=($!)
   echo -ne '##################################################################################..........................  (80%)   [设置防火墙规则]\r'
   sleep .5
-  #设置防火墙规则
+  #设置防火墙规则，阿里云、aws默认firewalld关闭状态
   set_iptrules
   pids+=($!)
-  echo -ne '###########################################################################################.................  (88%)   [设置中文语言]\r'
-  sleep .5
+  #echo -ne '###########################################################################################.................  (88%)   [设置中文语言]\r'
+  #sleep .5
   #设置中文语言
-  set_lang_cn
-  pids+=($!)
+  #set_lang_cn
+  #pids+=($!)
   echo -ne '################################################################################################............  (93%)   [配置内核参数]\r'
   sleep .5
   #配置内核参数
