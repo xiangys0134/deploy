@@ -21,7 +21,7 @@ cat >>${agent_json}<< EOF
     },
     "metrics": {
         "append_dimensions": {
-            "InstanceId": "${aws:InstanceId}"
+            "InstanceId": "\${aws:InstanceId}"
         },
         "metrics_collected": {
             "disk": {
