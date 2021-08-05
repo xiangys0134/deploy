@@ -7,7 +7,7 @@
 [ -f /etc/profile ] && . /etc/profile
 
 cmd=`pwd`
-version='19.03.14'
+version='20.10.7'
 
 function check_rpm {
     rpm_package=$1
@@ -122,4 +122,3 @@ function python_env {
 epel_install
 docker_install
 python_env
-
