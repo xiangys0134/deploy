@@ -31,7 +31,7 @@ fi
 echo "备份时间为${t_time},备份数据库表 ${dbname} 开始" >> ${logpath}/mysqllog.log
 
 #获取数据库名
-dbname=`mysql -h ${dbhost} -u${dbuser} -p${dbpasswd} -e "show databases;" |egrep -v "Database|sys|information_schema|performance_schema|awsdms_control"`
+dbname=`mysql -h ${dbhost} -u${dbuser} -p${dbpasswd} -e "show databases;" |egrep -v "Database|sys|information_schema|mysql|performance_schema|awsdms_control|test"`
 
 #正式备份数据库
 for db in $dbname; do
