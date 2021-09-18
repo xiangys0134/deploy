@@ -53,7 +53,7 @@ function epel_install {
 }
 
 function docker_install {
-    yum install -y yum-utils device-mapper-persistent-data lvm2
+    yum install -y yum-utils device-mapper-persistent-data lvm2 wget unzip
     yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
     if [ $? -ne 0 ]; then
         echo -e "\033[31m添加docker-ce.repo失败\033[0m"
@@ -93,30 +93,12 @@ function python_env {
         yum -y install python36 python36-devel
     fi
 
-    pip3 -V &>/dev/null
-
-    if [ $? -ne 0 ]; then
-        if [ ! -f /usr/bin/python3 ]; then
-            ln -s /usr/bin/python3.6 /usr/bin/python3
-        fi
-        yum install -y python36-setuptools python36-six.noarch
-        wget -P /tmp/ https://bootstrap.pypa.io/get-pip.py
-        if [ $? -ne 0 ]; then
-            echo -e "\033[31mdownload get-pip.py fail\033[0m"
-            exit 5
-        fi
-        /usr/bin/python3.6 /tmp/get-pip.py
-        pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple docker-compose
-        if [ $? -eq 0 ]; then
-             echo -e "\033[32mdocker-compose install seccuess\033[0m"
-        fi
-    else
-        pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple docker-compose
-        if [ $? -eq 0 ]; then
-             echo -e "\033[32mdocker-compose install seccuess\033[0m"
-        fi
-    fi
-
+    # pip3 -V &>/dev/null
+    echo "************************************************"
+    echo "pip3 install --upgrade pip -i http://pypi.douban.com/simple --trusted-host pypi.douban.com"
+    pip3 install --upgrade pip -i http://pypi.douban.com/simple --trusted-host pypi.douban.com
+    pip3 install --upgrade setuptools -i http://pypi.douban.com/simple --trusted-host pypi.douban.com
+    pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple docker-compose
 }
 
 epel_install
