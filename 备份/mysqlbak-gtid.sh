@@ -35,7 +35,7 @@ dbname=`mysql -h ${dbhost} -u${dbuser} -p${dbpasswd} -e "show databases;" |egrep
 
 #正式备份数据库
 for db in $dbname; do
-  mysqldump -h ${dbhost} -u${dbuser} -p${dbpasswd} -F -B $db --single-transaction |gzip> ${logpath}/${db}${backtime}.sql.gz 2>> ${logpath}/mysqllog.log
+  mysqldump -h ${dbhost} -u${dbuser} -p${dbpasswd} -F -B $db --single-transaction --set-gtid-purged=off |gzip> ${logpath}/${db}${backtime}.sql.gz 2>> ${logpath}/mysqllog.log
   #备份成功以下操作
   if [ "$?" == 0 ];then
     cd $datapath
