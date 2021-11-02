@@ -1,0 +1,187 @@
+//需要安装插件ssh agent,Blue Ocean
+//镜像案例：registry.cn-shenzhen.aliyuncs.com/stl-dev/fazzaco:fazzaco-backend-sys-dev-202108260746
+//参数解释：
+//       PARENT_BRANCH:父工程代码分支
+//       BRANCH:子工程代码分支
+//       PROFILE:标识对应环境镜像，实际并无太多作用(某些版本可能使用该值作为mvn参数)
+
+//共享库地址通过系统设置共享库查看
+@Library('ops-pipline-library')_
+
+import com.timeform.GlobalVars
+
+//如果要配置钉钉推送请找系统管理员添加对应钉钉robot，同时可自定义text推送信息
+def message(){
+  dingtalk (
+      robot: 'ea121e30-eecb-4250-a714-fe779120a643',
+      type: 'TEXT',
+      text: [
+          "${env.docker_image}:${env.docker_image_tag} build成功了，请检查！"
+      ]
+  )
+}
+
+def err_message(){
+  dingtalk (
+      robot: 'ea121e30-eecb-4250-a714-fe779120a643',
+      type: 'TEXT',
+      text: [
+          "${env.docker_image}:${env.docker_image_tag} build失败了，请检查！"
+      ]
+  )
+}
+
+def devgit(){
+    script{
+        checkout([$class: 'GitSCM',
+        branches: [[name: dev_tag]],
+        doGenerateSubmoduleConfigurations: false,
+        extensions: [[$class: 'RelativeTargetDirectory',
+        relativeTargetDir: project ]],
+        submoduleCfg: [],
+        userRemoteConfigs: [[credentialsId: git_key,
+        url: git_url ]]])
+    }
+}
+
+pipeline {
+  agent {
+      node {
+          label 'dotnet'
+      }
+  }
+
+  environment {
+      // sDate=time()
+      app_name='fx110-international-web'
+      dockerfile='Dockerfile'
+      dockerdir='./'
+      dockerregistry='https://registry.cn-shenzhen.aliyuncs.com'
+      docker_image='registry.cn-shenzhen.aliyuncs.com/stl-dev/g6p'
+      startDate=timeForm()
+
+      data_agent=dataAgent()
+      envtag = imageTag()
+
+      docker_image_tag="${env.app_name}-${env.envtag}"
+      docker_key='fb805td9-7e7e-4c79-a9e4-325d5afacc7a'
+  }
+  stages {
+        stage('删除工作空间') {
+            steps {
+                script{
+                    deleteDir()
+                }
+            }
+        }
+        stage('拉取git仓库') {
+            failFast true
+            parallel {
+              stage('拉取git仓库2') {
+                environment {
+                    git_url='ssh://git@blog.g6p.cn/Bailun/g6p.git'
+                    git_key='92b42e30-38f2-442d-a2c2-9763fb14d6bf'
+                    dev_tag=varEnv.branchTag(BRANCH)
+                    project='code_directory'
+
+                }
+                steps {
+                    // devgit()
+                    sshagent(credentials: [git_key], ignoreMissing: true) {
+                        dir("${env.WORKSPACE}") {
+                            sh '''
+                                git clone --depth 1 --branch=${dev_tag} ${git_url} ${WORKSPACE}/${project}
+                            '''
+                        }
+                    }
+                }
+              }
+            }
+        }
+        stage('代码编译') {
+            environment {
+              project='code_directory'
+            }
+            steps {
+              script {
+                dir("${env.WORKSPACE}/${env.project}") {
+                  sh'''
+                    chmod 755 g6p.sln
+
+                    #配置环境变量解决nuget还原过程中ssl握手不信任问题
+                    export DOTNET_SYSTEM_NET_HTTP_USESOCKETSHTTPHANDLER=0
+
+                    #指定清理BailunNetcore库
+                    #rm -rf /home/jenkins/.nuget/packages/bailun.netcore.*
+
+                    dotnet restore --configfile nuget.config
+
+                    #清除上一次输出问题以及obj文件夹
+                    dotnet clean -c Release
+
+                    #编译处理
+                    dotnet build -c Release
+                    #发布处理,使用发布路径下面的项目地址进行打包处理
+                    dotnet publish -c Release
+                  '''
+                }
+              }
+            }
+        }
+        stage('build构建镜像') {
+            environment {
+              project='code_directory/g6p'
+              docker_builddir="${env.WORKSPACE}/${env.project}"
+
+            }
+            steps {
+              dir("${env.docker_builddir}"){
+                  script {
+                      try {
+                        withDockerRegistry(credentialsId: docker_key, url: dockerregistry) {
+                            def customImage = docker.build("${docker_image}:${docker_image_tag}", "-f ${dockerfile} ${dockerdir}")
+                            customImage.push()
+                        }
+                      }
+                      catch(exc){
+                        currentBuild.result='FAILURE'
+                        echo'构建失败'
+                        err_message()
+                        sh'exit 4'
+                      }
+                  }
+              }
+            }
+        }
+
+        stage('打包状态通知') {
+            environment {
+                // eDate=time()
+                endDate=timeForm()
+            }
+            steps {
+                message()
+            }
+        }
+        stage('deploy部署开发节点') {
+          steps {
+            script {
+              if (env.language_deploy) {
+                echo "language_deploy=${language_deploy}"
+                for (item in language_deploy.tokenize(',')){
+                  echo "Deploying to " + item
+                  try {
+                    build job: "dev-fx110-international-web-${item}-update", parameters: [
+                        string(name: 'release_tag', value: env.docker_image_tag)
+                    ]
+                  }
+                  catch(exc){
+                    echo "dev-fx110-international-web-${item}-update 发布失败"
+                  }
+                }
+              }
+            }
+          }
+        }
+  }
+}
