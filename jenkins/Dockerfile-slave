@@ -1,0 +1,56 @@
+FROM centos:centos7.6.1810
+
+ENV LANG=zh_CN.UTF-8 \
+    LANGUAGE=zh_CN.UTF-8 \
+    TIME_ZONE=Asia/Shanghai \
+    JAVA_HOME=/usr/lib/jvm/java-1.8.0
+
+RUN echo "${TIMEZONE}" > /etc/timezone \
+    && echo "$LANG UTF-8" > /etc/locale.gen \
+    && ln -sf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime \
+    && yum-config-manager --add-repo http://mirrors.aliyun.com/repo/Centos-7.repo \
+    && yum install -y epel-release ntp yum-plugin-fastestmirror vim-enhanced ntp wget bash-completion elinks lrzsz unix2dos dos2unix git java-1.8.0-openjdk-devel openssl-devel \
+    rpm-build.x86_64 wget sudo vim unix2dos dos2unix which gcc gcc-c++ gdb make automake autoconf autogen libtool gettext-devel libcurl-devel unixODBC-devel centos-release-scl \
+    && wget https://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo -O /etc/yum.repos.d/epel-apache-maven.repo \
+    && yum --enablerepo=epel-apache-maven install apache-maven-3.5.2 -y \
+    && mkdir -p /home/jenkins/.jenkins \
+    && mkdir -p /home/jenkins/agent \
+    && mkdir -p /usr/share/jenkins \
+    && yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo \
+    && yum install -y docker-ce-19.03.14 \
+    && yum-config-manager --enable rhel-server-rhscl-7-rpms \
+    && curl -sL https://rpm.nodesource.com/setup_12.x | bash - \
+    && yum install -y nodejs \
+    && curl -sL https://dl.yarnpkg.com/rpm/yarn.repo | tee /etc/yum.repos.d/yarn.repo \
+    && yum install -y yarn \
+    && npm install -g cnpm --registry=https://registry.npm.taobao.org \
+    && curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
+    && unzip awscliv2.zip \
+    && sudo ./aws/install \
+    && rm -rf awscliv2* \
+    && yum -y install devtoolset-7 \
+    && scl enable devtoolset-7 bash \
+    && echo "source /opt/rh/devtoolset-7/enable" >> /root/.bashrc \
+    && rpm -Uvh https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm \
+    && yum install -y dotnet-sdk-3.1 libXScrnSaver gtk3 at-spi2-atk \
+    && yum clean all
+
+COPY kubectl /usr/local/bin/kubectl
+COPY helm /usr/local/bin/helm
+#COPY jenkins-slave /usr/local/bin/jenkins-slave
+COPY jenkins-agent /usr/local/bin/jenkins-agent
+#COPY slave.jar /usr/share/jenkins
+COPY agent.jar /usr/share/jenkins
+COPY settings.xml /etc/maven/settings.xml
+COPY config ~/.kube/config
+
+RUN chmod +x /usr/local/bin/jenkins-agent &&\
+    ln -s /usr/local/bin/jenkins-agent /usr/local/bin/jenkins-slave
+
+
+USER root
+
+WORKDIR /home/jenkins
+
+ENTRYPOINT ["/usr/local/bin/jenkins-agent"]
+
