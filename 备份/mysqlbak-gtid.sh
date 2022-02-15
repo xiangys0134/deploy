@@ -8,7 +8,7 @@
 
 #数据库用户名
 #CREATE USER 'mysqldumper'@'localhost' IDENTIFIED BY '123456';
-#GRANT SELECT, RELOAD, SUPER, LOCK TABLES ON *.* TO 'mysqldumper'@'localhost';
+#GRANT PROCESS,SELECT, RELOAD, SUPER, LOCK TABLES ON *.* TO 'mysqldumper'@'localhost';
 ##flush privileges ;
 dbhost='localhost'
 dbuser='mysqldumper'
