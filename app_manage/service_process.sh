@@ -21,8 +21,8 @@ function serviceCheck() {
     forloops=2
     while [ ${forloops} -gt 0 ]
     do
-      systemctl stop mysqld.service
-      systemctl start mysqld.service
+      systemctl stop ${service}
+      systemctl start ${service}
       if [ $? -eq 0 ]; then
         break;
       else
