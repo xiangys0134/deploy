@@ -53,7 +53,7 @@ function tar_log() {
     cd "${log_path}"
     for file in `find ${log_path} -maxdepth 1 -name "${file_type}" |grep -E [0-9]{4}[0-9]{2}[0-9]{2}[0-9]{2}[0-9]{2}[0-9]{2}|grep -v "gz"`
     do
-      tar --force-local  -czf ${file}.tar.gz ${file} --remove-file
+      tar --force-local  -czf ${file}.tar.gz ${file} --remove-file &>/dev/null
     done
     cd -
 }
