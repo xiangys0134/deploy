@@ -11,10 +11,7 @@ def createRandom(args):
     lst1.extend(lst2)
     lst1.extend(lst3)
 
-    if not str(args).isdigit() or str(args)== '0':
-        return False
-
-    if not isinstance(args,int):
+    if not isinstance(args,int) or str(args) == '0':
         return False
 
     num_list = []
