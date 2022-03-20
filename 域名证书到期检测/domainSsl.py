@@ -6,7 +6,7 @@
 # 功能: 查看证书到期时间，执行速度受ssl请求响应及域名数量影响，可考虑多线程检测
 # pip3 install pyopenssl python-dateutil
 
-import csv,os,OpenSSL,sslsocket
+import csv,os,OpenSSL,sslsocket,json,requests
 from datetime import datetime
 from dateutil import parser
 
@@ -21,6 +21,30 @@ csv_w_name = 'domainssl%s.csv'%now
 
 if not os.path.exists(os.path.join(csv_source_dir,csv_r_name)): exit(5)
 if not os.path.exists(csv_dir): os.makedirs(csv_dir)
+
+url = 'https://oapi.dingtalk.com/robot/send?access_token=62dadf25b1422a93887699537e8e5386350de88f78f8a15daa707841fb37de49'
+csvurl = 'http://192.168.7.57:808/ssl_domain'
+
+def getData(text_content):
+    '''返回钉钉发送消息格式'''
+    text = {
+        'msgtype': 'text',
+        'text': {
+            'content': text_content
+        },
+    }
+    return text
+
+def sendDing(url,data):
+    '''钉钉发送'''
+    headers = {'Content-Type':'application/json;charset=utf-8'}
+    res = requests.post(url=url,data=json.dumps(data),headers=headers)
+    if res.status_code != 200:
+        now = datetime.now()
+        time_str = now.strftime('%Y-%m-%d %H:%M:%S')
+        print('%s 发送消息失败!'%time_str)
+        return 2
+    return 1
 
 def certCheck(hostname,port=443):
     "域名证书有效性检查"
@@ -66,4 +90,12 @@ with open(os.path.join(csv_source_dir,csv_r_name),'r',encoding='utf-8') as f, \
             ret = False
         if ret:
             csv_writer.writerow(ret)
+    msg = '''
+    Alert DingDing INFO
+    域名证书到期检查链接：%s
+    文件名：%s
+    '''%(csvurl,csv_w_name)
+
+    data = getData(msg)
+    sendDing(url, data)
     print('检查完毕，csv表格路径：%s'%os.path.join(csv_dir,csv_w_name))
