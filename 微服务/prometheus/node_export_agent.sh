@@ -3,6 +3,9 @@
 # Author yousong.xiang
 # Date 2021.7.6
 # v1.0.1
+# Example bash -x node_export_agent.sh.sh server rancher-k8s-conn 192.168.7.58 9101 
+# server: 表示注册至consul的服务名称
+# rancher-k8s-conn: 表示注册至consul的主机名称
 
 node_exporter_version='1.1.2'
 download_path="https://github.com/prometheus/node_exporter/releases/download/v${node_exporter_version}/node_exporter-${node_exporter_version}.linux-amd64.tar.gz"
