@@ -20,3 +20,22 @@ http_api = 'http://192.168.7.118:8008/domainslist'
 csv_w_name = 'domainwhois%s.csv'%NOW_TIME
 http = urllib3.PoolManager()
 csv_dir = '/opt/whois_domain'
+
+
+dic1 = {"huiketang.com": {"name": "湖南元伦", "url": "https://signin.aliyun.com/"}, "fastbull.com": {"name": "未知", "url": "Unknown"}}
+for k,v in dic1.items():
+    print(k)
+    print("values",v)
+
+import re
+
+domain = 'www.fxstreet.net.cn'
+
+if ".net.cn" in domain:
+    print('aaa')
+domain1 = 'ab.www.fxstreet.cn'
+# ret = re.findall(r'^\w+\.((?:\w+\.)+\w+)$', domain1)
+ret = re.findall(r'\w+\.(\w+\.\w+)$', domain1)
+
+ret = re.findall(r'\w+\.(\w+\.\w+)$', domain1)
+print(ret)
