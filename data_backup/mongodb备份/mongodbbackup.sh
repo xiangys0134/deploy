@@ -9,12 +9,12 @@
 
 [ -f /etc/profile ] && . /etc/profile
 
-host=172.20.19.41
+host=172.20.21.163
 port=27017
 auth_db=admin
-backup_db_list='forex_know'
+backup_db_list='fastbull_macro_data fastbull_media fastbull_news fastbull_quotes fastbull_universal'
 username=dumper
-password=yourpassword
+password=emJIRFUuoynMhyOzf6P5
 
 #备份时间
 backtime=`date '+%Y%m%d%H%M%S'`
@@ -27,7 +27,7 @@ if [ ! -d $datapath ]; then
 fi
 
 function mongodbBak {
-  set -eux
+  #set -eux
   backup_db=$1
   backup_path_dir=`echo ${datapath%/*}`
   out_dir=`echo ${datapath##*/}`
@@ -39,25 +39,30 @@ function mongodbBak {
     --db=${backup_db} \
     --out=${out_dir} \
     --username=${username} \
-    --password=${password}
+    --password=${password} \
+    --forceTableScan
   cd -
-  set +eux
+  #set +eux
 }
 
 function compressGzip {
   set -eux
   backup_db=$1
-  cd $datapath
-  tar -czf ../${backup_db}-${backtime}.tar.gz $backup_db --remove-files
+  cd ${datapath:-/tmp}
+  if [ -d $backup_db ]; then
+      tar -czf ../${backup_db}-${backtime}.tar.gz $backup_db --remove-files
+      echo "${backtime} 数据库 ${backup_db} 备份成功!!" >> /tmp/mongobbak.log
+  else
+      echo "${backtime} 数据库 ${backup_db} 备份失败!!" >> /tmp/mongobbak.log
+  fi	  
   cd -
   set +eux
-  echo "${backtime} 数据库 ${backup_db} 备份成功!!" >> /tmp/mongobbak.log
 }
 
 function removeGzip {
   backup_path_dir=`echo ${datapath%/*}`
   cd ${backup_path_dir:-/tmp}
-  find ${backup_path_dir:-/tmp/mongodbbakup} -name "*.gz" -type f -mtime +7 -exec rm -rf {} \; > /dev/null 2>&1
+  find ${backup_path_dir:-/tmp/mongodbbakup} -name "*.gz" -type f -mtime +3 -exec rm -rf {} \; > /dev/null 2>&1
 }
 
 function main {
