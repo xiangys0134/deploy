@@ -12,7 +12,7 @@
 host=172.20.21.163
 port=27017
 auth_db=admin
-backup_db_list='fastbull_macro_data fastbull_media fastbull_news fastbull_quotes fastbull_universal'
+backup_db_list='bull_test'
 username=dumper
 password=emJIRFUuoynMhyOzf6P5
 
@@ -33,14 +33,13 @@ function mongodbBak {
   out_dir=`echo ${datapath##*/}`
   cd $backup_path_dir
   mongodump \
-    --host="${host}" \
+    --host="cluster/${host}" \
     --port=${port} \
     --authenticationDatabase=${auth_db} \
     --db=${backup_db} \
     --out=${out_dir} \
     --username=${username} \
-    --password=${password} \
-    --forceTableScan
+    --password=${password}
   cd -
   #set +eux
 }
