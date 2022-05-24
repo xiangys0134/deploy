@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e8c525b6-0ca0-411b-b255-cb5928090999" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/test123.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -241,12 +240,12 @@
       <workItem from="1652747908986" duration="8325000" />
       <workItem from="1652857321965" duration="594000" />
       <workItem from="1653269169794" duration="142000" />
-      <workItem from="1653354611731" duration="3933000" />
+      <workItem from="1653354611731" duration="4019000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="21267000" />
+    <option name="totallyTimeSpent" value="21353000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
