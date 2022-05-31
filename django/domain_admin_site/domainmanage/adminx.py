@@ -1,6 +1,7 @@
 import xadmin
 from xadmin import views
 from domainmanage.models import DomainInfo,Whoiscompany,Dnsservername
+from .adminx_actions import ClearAction
 
 class BaseSetting(object):
 
@@ -31,6 +32,8 @@ class DomainInfoAdmin(object):
     actions_on_top = False
     list_filter = ['dname','project']
     search_fields = ['dname','project']
+    # actions = [ClearAction,]
+
 
     def dnsserver(self,obj):
         try:

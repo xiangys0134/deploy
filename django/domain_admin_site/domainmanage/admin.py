@@ -35,7 +35,6 @@ class DomainInfoAdmin(admin.ModelAdmin):
     # isdeploy.short_description = u"部署状态"
 
 
-
 class WhoiscompanyAdmin(admin.ModelAdmin):
     '''域名运营商模型'''
     list_per_page = 10  #指定每页显示10条数据

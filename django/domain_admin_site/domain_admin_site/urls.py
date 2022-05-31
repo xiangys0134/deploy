@@ -25,5 +25,7 @@ xversion.register_models()
 urlpatterns = [
     # path('admin/', admin.site.urls),
     re_path('^xadmin/', xadmin.site.urls),
+    re_path('^api/', include(('domapi.urls','domapi'),namespace='domapi')),
     re_path('^', include(('domainmanage.urls','domainmanage'),namespace='domainmanage')),
+
 ]

@@ -24,10 +24,6 @@ router.register(r'groups', views.GroupViewSet)
 
 # 另外，我们还包括支持浏览器浏览API的登录URL。
 urlpatterns = [
-    re_path('^domainslist$', views.domainslist),
-    re_path('^whoisgetlist$', views.whoisgetlist),
-    re_path('^testindex/', views.testindex),
-    # re_path(r'^', include(router.urls)),
-    # re_path(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    re_path('', views.index),
+    re_path(r'^', include(router.urls)),
+    re_path(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]

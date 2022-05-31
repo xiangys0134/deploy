@@ -7,6 +7,26 @@ from domainmanage.models import DomainInfo,Whoiscompany
 import re
 # Create your views here.
 
+from django.contrib.auth.models import User, Group
+from rest_framework import viewsets
+from .serializers import UserSerializer, GroupSerializer
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    允许用户查看或编辑的API路径。
+    """
+    queryset = User.objects.all().order_by('-date_joined')
+    serializer_class = UserSerializer
+
+
+class GroupViewSet(viewsets.ModelViewSet):
+    """
+    允许组查看或编辑的API路径。
+    """
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
+
 def domainslist(request):
     '''获取域名信息'''
     domains = DomainInfo.objects.all()
